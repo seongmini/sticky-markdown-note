@@ -1,0 +1,42 @@
+{
+  "name": "sticky-markdown",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "Sticky Markdown Note App",
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "katex": "^0.16.22",
+    "marked": "^15.0.11"
+  },
+  "devDependencies": {
+    "electron": "^36.2.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.hsmin.stickymarkdownnote",
+    "productName": "Sticky Markdown Note",
+    "files": [
+      "**/*",
+      "!dist"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "icon.ico"
+    },
+    "asar": true,
+    "mac": {
+      "target": ["dmg", "zip"],
+      "icon": "icon.icns"
+    }
+  }
+}

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Memo List</title>
+        <style>
+            body { font-family: sans-serif; margin: 0; padding: 0; }
+            .note { padding: 10px; border-bottom: 1px solid #ccc; cursor: pointer; }
+            .note:hover { background: #f0f0f0; }
+            .title { font-weight: bold; }
+            .time { font-size: 12px; color: gray; }
+
+            #toolbar {
+                padding: 10px;
+                border-bottom: 1px solid #ccc;
+                background: #f9f9f9;
+                display: flex;
+                gap: 10px;
+            }
+
+            #add {
+                font-size: 14px;
+                padding: 5px 10px;
+                cursor: pointer;
+            }
+
+            #search {
+                flex: 1;
+                font-size: 14px;
+                padding: 5px;
+            }
+
+            .delete-btn {
+                padding: 4px 10px;
+                border-radius: 4px;
+                font-size: 13px;
+            }
+
+            #titlebar {
+                height: 30px;
+                background-color: #ddd;
+                position: sticky;
+                top: 0;
+                z-index: 999;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0 8px;
+                -webkit-app-region: drag;
+                user-select: none;
+                font-weight: bold;
+            }
+
+            #titlebar button {
+                background: none;
+                border: none;
+                font-size: 16px;
+                cursor: pointer;
+                -webkit-app-region: no-drag;
+            }
+
+            body.light-theme {
+                background: #fff;
+                color: #000;
+            }
+
+            body.dark-theme {
+                background: #1e1e1e;
+                color: #eee;
+            }
+
+            .dark-theme #toolbar {
+                background-color: #222;
+            }
+
+            .dark-theme #titlebar {
+                background: #333;
+                color: #ddd;
+            }
+
+            .dark-theme input,
+            .dark-theme button,
+            .dark-theme textarea,
+            .dark-theme select {
+            background-color: #2a2a2a;
+            color: #eee;
+            border: 1px solid #666;
+            }
+
+            .dark-theme input::placeholder,
+            .dark-theme textarea::placeholder {
+            color: #999;
+            }
+
+            .dark-theme button:hover {
+            background-color: #444;
+            }
+
+            .dark-theme .note {
+                border-bottom: 1px solid #444;
+            }
+
+            .dark-theme .note:hover {
+                background-color: #2a2a2a;
+            }
+
+            .dark-theme #add,
+            .dark-theme #search {
+            background-color: #2a2a2a;
+            color: #eee;
+            border: 1px solid #666;
+            }
+
+            .dark-theme #add:hover {
+            background-color: #444;
+            }
+
+        </style>
+    </head>
+    <body>
+        <div id="titlebar">
+            <span>Sticky Markdown Note</span>
+            <div>
+                <button id="theme-toggle" class="title-btn">🌓</button>
+                <button onclick="window.close()">✖</button>
+            </div>
+        </div>
+
+        <div id="toolbar">
+            <button id="add">➕ New note</button>
+            <input id="search" type="text" placeholder="Search notes..." />
+        </div>
+        <div id="notes"></div>
+
+        <script src="list.js"></script>
+    </body>
+</html>

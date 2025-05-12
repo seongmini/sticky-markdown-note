@@ -1,0 +1,17 @@
+# Node modules
+node_modules/
+
+# 빌드 산출물
+dist/
+*.exe
+
+# 개인 설정 파일
+.env
+settings.json
+note-window-state.json
+last-session.json
+
+# VSCode 등 IDE 설정
+.vscode/
+.DS_Store
+Thumbs.db
