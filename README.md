@@ -106,6 +106,12 @@ THEME=LIGHT # or dark
 | --------------- | -------------------------------------------- |
 | 🌗 Theme button | Toggle between **Light** and **Dark** themes |
 
+## Support
+
+If you find this app useful, consider supporting its development:
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/notemad)
+
 ### License
 
 This project is licensed under the [MIT License](LICENSE).
