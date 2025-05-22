@@ -28,7 +28,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function loadNotes() {
     container.innerHTML = '';
-    fs.readdirSync(notesDir).forEach(file => {
+    const files = fs.readdirSync(notesDir).reverse();
+    files.forEach(file => {
       if (!file.endsWith('.md')) return;
       const fullPath = path.join(notesDir, file);
       const content = fs.readFileSync(fullPath, 'utf-8');
