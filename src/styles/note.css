@@ -1,0 +1,58 @@
+/* 기본 레이아웃 */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+/* 에디터와 프리뷰 스타일 */
+#editor {
+    height: 50%;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 16px;
+    padding: 10px;
+    resize: none;
+}
+
+#preview {
+    height: 50%;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+    overflow-y: auto;
+    border-top: 1px solid #ccc;
+}
+
+/* 다크 테마 노트 전용 스타일 */
+.dark-theme #editor,
+.dark-theme #preview,
+.dark-theme textarea {
+    background: #1e1e1e;
+    color: #eee;
+    border-color: #444;
+}
+
+/* 뷰 모드 스타일 */
+#editor, #preview {
+    flex: 1;
+    height: auto;
+}
+
+body.both-mode #editor,
+body.both-mode #preview {
+    height: 50%;
+    display: block;
+}
+
+body.only-mode #editor,
+body.only-mode #preview {
+    flex: 1;
+    height: auto;
+    display: block;
+} 

@@ -1,5 +1,4 @@
 // theme.js
-const path = require('path');
 
 function getInitialTheme() {
   return localStorage.getItem('theme') || 'light';
@@ -12,7 +11,7 @@ function applyTheme(theme) {
 }
 
 function toggleTheme() {
-  const current = localStorage.getItem('theme') || (process.env.THEME || 'light');
+  const current = localStorage.getItem('theme') || process.env.THEME || 'light';
   const newTheme = current === 'dark' ? 'light' : 'dark';
   applyTheme(newTheme);
 }

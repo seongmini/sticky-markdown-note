@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Note</title>
+    <link rel="stylesheet" href="../../styles/common.css">
+    <link rel="stylesheet" href="../../styles/note.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+  </head>
+  <body>
+    <div id="titlebar">
+      <button id="new-note" class="title-btn">➕</button>
+      <div>
+        <button id="view-toggle" class="title-btn">both</button>
+        <button id="only-toggle" class="title-btn" style="display:none;">✏️</button>
+        <button id="open-list" class="title-btn">List</button>
+        <button onclick="window.close()">✖</button>
+      </div>
+          
+    </div>
+
+    <textarea id="editor" placeholder="Write here..."></textarea>
+    <div id="preview"></div>
+
+    <script src="note.js"></script>
+  </body>
+</html>

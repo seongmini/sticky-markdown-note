@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Memo List</title>
+        <link rel="stylesheet" href="../../styles/common.css">
+        <link rel="stylesheet" href="../../styles/list.css">
+    </head>
+    <body>
+        <div id="titlebar">
+            <span>Sticky Markdown Note</span>
+            <div>
+                <button id="theme-toggle" class="title-btn">🌓</button>
+                <button onclick="window.close()">✖</button>
+            </div>
+        </div>
+
+        <div id="toolbar">
+            <button id="add">➕ New note</button>
+            <input id="search" type="text" placeholder="Search notes..." />
+        </div>
+        <div id="notes"></div>
+
+        <script src="list.js"></script>
+    </body>
+</html>

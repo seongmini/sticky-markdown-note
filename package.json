@@ -1,23 +1,34 @@
 {
   "name": "sticky-markdown",
   "version": "1.0.0",
-  "main": "main.js",
+  "main": "src/main/main.js",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder"
+    "dist": "electron-builder",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write ."
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "Sticky Markdown Note App",
   "dependencies": {
-    "dotenv": "^16.5.0",
-    "katex": "^0.16.22",
-    "marked": "^15.0.11"
+    "dotenv": "^16.4.5",
+    "electron-auto-launch": "^5.0.7",
+    "katex": "^0.16.9",
+    "marked": "^12.0.0"
   },
   "devDependencies": {
-    "electron": "^36.2.0",
-    "electron-builder": "^26.0.12"
+    "@types/electron": "^1.6.12",
+    "@types/node": "^22.15.21",
+    "electron": "^29.1.0",
+    "electron-builder": "^24.13.3",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "prettier": "^3.2.5",
+    "typescript": "^5.8.3"
   },
   "build": {
     "appId": "com.hsmin.stickymarkdownnote",
@@ -31,12 +42,15 @@
     },
     "win": {
       "target": "nsis",
-      "icon": "icon.ico"
+      "icon": "assets/icon.ico"
     },
     "asar": true,
     "mac": {
-      "target": ["dmg", "zip"],
-      "icon": "icon.icns"
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "assets/icon.icns"
     }
   }
 }
