@@ -4,8 +4,8 @@
   "main": "src/main/main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder build --win --mac --linux",
-    "package": "electron-builder build --win --mac --linux --publish never",
+    "build": "electron-builder build --win",
+    "package": "electron-builder build --win --publish never",
     "dist": "electron-builder",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
