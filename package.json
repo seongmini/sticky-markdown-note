@@ -4,10 +4,13 @@
   "main": "src/main/main.js",
   "scripts": {
     "start": "electron .",
+    "build": "electron-builder build --win --mac --linux",
+    "package": "electron-builder build --win --mac --linux --publish never",
     "dist": "electron-builder",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
@@ -31,26 +34,24 @@
     "typescript": "^5.8.3"
   },
   "build": {
-    "appId": "com.hsmin.stickymarkdownnote",
+    "appId": "com.sticky.markdown.note",
     "productName": "Sticky Markdown Note",
-    "files": [
-      "**/*",
-      "!dist"
-    ],
     "directories": {
       "output": "dist"
     },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
     "win": {
-      "target": "nsis",
-      "icon": "assets/icon.ico"
+      "target": "nsis"
     },
-    "asar": true,
     "mac": {
-      "target": [
-        "dmg",
-        "zip"
-      ],
-      "icon": "assets/icon.icns"
-    }
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    },
+    "asar": true
   }
 }
