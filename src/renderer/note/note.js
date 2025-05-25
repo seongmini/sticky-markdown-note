@@ -144,7 +144,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const end = editor.selectionEnd;
     const text = editor.value;
     const selected = text.slice(start, end);
-    if (e.ctrlKey) {
+    const isMac = process.platform === 'darwin';
+    const modifierKey = isMac ? e.metaKey : e.ctrlKey;
+
+    if (modifierKey) {
       switch (e.key.toLowerCase()) {
         case 'p':
           e.preventDefault();
@@ -167,7 +170,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           return;
       }
     }
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n') {
+    if ((modifierKey) && e.key.toLowerCase() === 'n') {
       e.preventDefault();
       ipcRenderer.send('create-new-note-nearby');
       return;
@@ -196,7 +199,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       editor.dispatchEvent(new Event('input'));
       return;
     }
-    if (e.ctrlKey) {
+    if (modifierKey) {
       switch (e.key.toLowerCase()) {
         case 'b':
           e.preventDefault();
@@ -309,7 +312,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.addEventListener(
     'wheel',
     e => {
-      if (!e.ctrlKey) return;
+      if (!modifierKey) return;
       e.preventDefault();
       currentFontSize += e.deltaY < 0 ? 1 : -1;
       currentFontSize = Math.max(fontSizeMin, Math.min(currentFontSize, fontSizeMax));

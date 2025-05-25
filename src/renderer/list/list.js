@@ -92,11 +92,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   document.addEventListener('keydown', e => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+    const isMac = process.platform === 'darwin';
+    const modifierKey = isMac ? e.metaKey : e.ctrlKey;
+
+    if (modifierKey && e.key === 'n') {
       e.preventDefault();
       ipcRenderer.send('create-new-note');
     }
-    if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+    if (modifierKey && e.key === 'f') {
       e.preventDefault();
       document.getElementById('search').focus();
     }

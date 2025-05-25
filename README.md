@@ -11,6 +11,7 @@ A lightweight, always-on-top sticky note applicatoin with Markdown support, buil
 - **Search & Filter**: Quickly find notes by title or content.
 - **Window Memory**: Remembers last position and size of each note window.
 - **Keyboard Shortcuts**: See below for a comprehensive list.
+- **Cross-Platform**: Supports both Windows and macOS (macOS version is built but not tested).
 
 ## Installation
 
@@ -36,13 +37,25 @@ npm start
 ### Building for Windows
 ```bash
 # Generate installer and unpacked app in the `dist` folder
-npm run dist
+npm run build:win
 ```
 
-After buildilng, you'll find:
+### Building for macOS
+```bash
+# Generate DMG installer and app bundle in the `dist` folder
+npm run build:mac
+```
 
-- **Sticky Note Setup.exe** ─ the installer.
-- **win-unpacked/** ─ the portable executable folder you can copy around.
+After building, you'll find:
+
+- **Windows**: 
+  - **Sticky Note Setup.exe** ─ the installer
+  - **win-unpacked/** ─ the portable executable folder
+- **macOS**:
+  - **Sticky Markdown.dmg** ─ the installer
+  - **mac/** ─ the app bundle
+
+> **Note**: While the macOS version is built and should work, it has not been thoroughly tested on macOS systems. Please report any issues you encounter.
 
 ## Usage
 
@@ -69,29 +82,29 @@ THEME=LIGHT # or dark
 
 | Shortcut   | Action                                                    |
 | ---------- | --------------------------------------------------------- |
-| **Ctrl+P** | Switch to **Both** view mode                              |
-| **Ctrl+O** | Toggle between **Editor Only** and **Preview Only** modes |
-| **Ctrl+M** | Open the **Memo List** window                             |
+| **Ctrl+P** / **Cmd+P** | Switch to **Both** view mode                              |
+| **Ctrl+O** / **Cmd+O** | Toggle between **Editor Only** and **Preview Only** modes |
+| **Ctrl+M** / **Cmd+M** | Open the **Memo List** window                             |
 
 ### In Note Editor Window
 
 | Shortcut               | Action                                   |
 | ---------------------- | ---------------------------------------- |
 | **Ctrl+N** / **Cmd+N** | Create a **New Note**                    |
-| **Ctrl+B**             | **Bold** formatting (`**text**`)         |
-| **Ctrl+I**             | *Italic* formatting (`*text*`)           |
-| **Ctrl+\`**            | Inline `code` formatting                 |
-| **Ctrl+K**             | Insert code block (`\n code \n`)         |
-| **Ctrl+Q**             | Blockquote (`> `)                        |
-| **Ctrl+H**             | Heading (`# `)                           |
-| **Ctrl+Shift+S**       | ~~Strikethrough~~ (`~~text~~`)           |
-| **Ctrl+L**             | Create or edit **Link** (`[text](url)`)  |
-| **Ctrl+Shift+L**       | Bullet list (`- item`)                   |
-| **Ctrl+Shift+O**       | Numbered list (`1. item`)                |
-| **Ctrl+Shift+C**       | Toggle task checkbox (`- [ ]` / `- [x]`) |
+| **Ctrl+B** / **Cmd+B** | **Bold** formatting (`**text**`)         |
+| **Ctrl+I** / **Cmd+I** | *Italic* formatting (`*text*`)           |
+| **Ctrl+\`** / **Cmd+\`** | Inline `code` formatting                 |
+| **Ctrl+K** / **Cmd+K** | Insert code block (`\n code \n`)         |
+| **Ctrl+Q** / **Cmd+Q** | Blockquote (`> `)                        |
+| **Ctrl+H** / **Cmd+H** | Heading (`# `)                           |
+| **Ctrl+Shift+S** / **Cmd+Shift+S** | ~~Strikethrough~~ (`~~text~~`)           |
+| **Ctrl+L** / **Cmd+L** | Create or edit **Link** (`[text](url)`)  |
+| **Ctrl+Shift+L** / **Cmd+Shift+L** | Bullet list (`- item`)                   |
+| **Ctrl+Shift+O** / **Cmd+Shift+O** | Numbered list (`1. item`)                |
+| **Ctrl+Shift+C** / **Cmd+Shift+C** | Toggle task checkbox (`- [ ]` / `- [x]`) |
 | **Tab**                | Indent line(s)                           |
 | **Shift+Tab**          | Outdent line(s)                          |
-| **Ctrl + Mouse Wheel** | Increase / decrease font size            |
+| **Ctrl/Cmd + Mouse Wheel** | Increase / decrease font size            |
 
 ### In Memo List Window
 
@@ -104,7 +117,7 @@ THEME=LIGHT # or dark
 
 | Control         | Action                                       |
 | --------------- | -------------------------------------------- |
-| 🌗 Theme button | Toggle between **Light** and **Dark** themes |
+| 🌗 Theme button | Toggle between **Light** and **Dark** themes |
 
 ## Support
 

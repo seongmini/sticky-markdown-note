@@ -1,11 +1,13 @@
 {
   "name": "sticky-markdown",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "main": "src/main/main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder build --win",
-    "package": "electron-builder build --win --publish never",
+    "build:win": "electron-builder build --win",
+    "build:mac": "electron-builder build --mac",
+    "package:win": "electron-builder build --win --publish never",
+    "package:mac": "electron-builder build --mac --publish never",
     "dist": "electron-builder",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

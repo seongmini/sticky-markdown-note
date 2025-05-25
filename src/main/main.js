@@ -161,52 +161,64 @@ function saveWindowState(notePath, bounds) {
 }
 
 function cleanStartup() {
-  if (process.platform !== 'win32') return;
+  if (process.platform === 'win32') {
+    const runKey = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run';
+    const toDelete = [
+      'electron.app.Sticky Markdown Note',
+      'electron.app.Electron',
+      'com.hsmin.stickymarkdownnote',
+    ];
 
-  const runKey = 'HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run';
-  const toDelete = [
-    'electron.app.Sticky Markdown Note',
-    'electron.app.Electron',
-    'com.hsmin.stickymarkdownnote',
-  ];
-
-  // delete registry Run key
-  toDelete.forEach(name => {
-    try {
-      execSync(`reg delete "${runKey}" /v "${name}" /f`, { stdio: 'ignore' });
-    } catch (error) {
-      console.warn('Failed to delete registry key ${name}:', error);
-    }
-  });
-
-  // 1) per-user Startup folder
-  const userStartup = path.join(
-    app.getPath('appData'),
-    'Microsoft',
-    'Windows',
-    'Start Menu',
-    'Programs',
-    'Startup'
-  );
-  // 2) all-users Startup folder
-  const commonStartup = path.join(
-    process.env.ProgramData || '',
-    'Microsoft',
-    'Windows',
-    'Start Menu',
-    'Programs',
-    'Startup'
-  );
-  [userStartup, commonStartup].forEach(dir => {
-    const lnk = path.join(dir, 'Sticky Markdown Note.lnk');
-    if (fs.existsSync(lnk)) {
+    // delete registry Run key
+    toDelete.forEach(name => {
       try {
-        fs.unlinkSync(lnk);
+        execSync(`reg delete "${runKey}" /v "${name}" /f`, { stdio: 'ignore' });
+      } catch (error) {
+        console.warn('Failed to delete registry key ${name}:', error);
+      }
+    });
+
+    // 1) per-user Startup folder
+    const userStartup = path.join(
+      app.getPath('appData'),
+      'Microsoft',
+      'Windows',
+      'Start Menu',
+      'Programs',
+      'Startup'
+    );
+    // 2) all-users Startup folder
+    const commonStartup = path.join(
+      process.env.ProgramData || '',
+      'Microsoft',
+      'Windows',
+      'Start Menu',
+      'Programs',
+      'Startup'
+    );
+    [userStartup, commonStartup].forEach(dir => {
+      const lnk = path.join(dir, 'Sticky Markdown Note.lnk');
+      if (fs.existsSync(lnk)) {
+        try {
+          fs.unlinkSync(lnk);
+        } catch (e) {
+          console.warn('Startup shortcut deletion failed:', e);
+        }
+      }
+    });
+  } else if (process.platform === 'darwin') {
+    // macOS startup items cleanup
+    const launchAgentsDir = path.join(app.getPath('home'), 'Library/LaunchAgents');
+    const plistFile = path.join(launchAgentsDir, 'com.sticky.markdown.note.plist');
+    
+    if (fs.existsSync(plistFile)) {
+      try {
+        fs.unlinkSync(plistFile);
       } catch (e) {
-        console.warn('Startup shortcut deletion failed:', e);
+        console.warn('Failed to remove macOS launch agent:', e);
       }
     }
-  });
+  }
 }
 
 ipcMain.on('open-note', (event, noteFile) => {
@@ -287,16 +299,26 @@ app.whenReady().then(() => {
   if (!app.isPackaged) {
     console.warn('Dev mode - skipping auto-launch registration');
   } else {
-    // 1) removing all automatic execution setting (per-user + all-users folder, HKCU\Run)
+    // 1) removing all automatic execution setting
     cleanStartup();
 
-    // 2) setting automatic execution only with Electron registry way
-    app.setLoginItemSettings({
-      openAtLogin: true,
-      path: process.execPath,
-      args: [],
-      name: app.getName(),
-    });
+    // 2) setting automatic execution with platform-specific settings
+    if (process.platform === 'darwin') {
+      app.setLoginItemSettings({
+        openAtLogin: true,
+        path: process.execPath,
+        args: [],
+        name: app.getName(),
+        enabled: true
+      });
+    } else {
+      app.setLoginItemSettings({
+        openAtLogin: true,
+        path: process.execPath,
+        args: [],
+        name: app.getName(),
+      });
+    }
   }
   let sessionRestored = false;
 
