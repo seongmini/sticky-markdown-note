@@ -52,7 +52,7 @@
     "mac": {
       "target": ["dmg"],
       "icon": "assets/icon.icns",
-      "arch": ["x64", "arm64"]
+      "defaultArch": "universal"
     },
     "linux": {
       "target": "AppImage",
