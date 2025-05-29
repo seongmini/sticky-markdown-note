@@ -1,6 +1,6 @@
 {
   "name": "sticky-markdown",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "main": "src/main/main.js",
   "scripts": {
     "start": "electron .",
@@ -50,8 +50,9 @@
       "icon": "assets/icon.ico"
     },
     "mac": {
-      "target": "dmg",
-      "icon": "assets/icon.icns"
+      "target": ["dmg"],
+      "icon": "assets/icon.icns",
+      "arch": ["x64", "arm64"]
     },
     "linux": {
       "target": "AppImage",
