@@ -92,6 +92,7 @@ function createNoteWindow(notePath, position = null, isNew = false) {
 
   win.on('blur', () => {
     win.webContents.send('window-blurred');
+    win.flashFrame(false); // 포커스를 잃을 때 깜박거림 중지
   });
 
   win.on('close', () => {
