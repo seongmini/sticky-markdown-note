@@ -2,7 +2,7 @@
 #titlebar {
     padding: 10px;
     border-bottom: 1px solid var(--border-color);
-    background: var(--background-color);
+    background: var(--bg-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -25,7 +25,7 @@
 }
 
 #titlebar button:hover {
-    background-color: var(--button-hover-background-color);
+    background-color: var(--button-hover);
 }
 
 /* 노트 리스트 스타일 */
@@ -52,7 +52,7 @@
 #toolbar {
     padding: 10px;
     border-bottom: 1px solid var(--border-color);
-    background: var(--background-color);
+    background: var(--bg-color);
     display: flex;
     gap: 10px;
     -webkit-app-region: drag;
@@ -63,14 +63,14 @@
     font-size: 14px;
     padding: 5px 10px;
     cursor: pointer;
-    background-color: var(--button-background-color);
-    color: var(--button-text-color);
+    background-color: var(--button-bg);
+    color: var(--button-text);
     border: 1px solid var(--border-color);
     border-radius: 4px;
 }
 
 #add:hover {
-    background-color: var(--button-hover-background-color);
+    background-color: var(--button-hover);
 }
 
 #search {
@@ -78,7 +78,7 @@
     flex: 1;
     font-size: 14px;
     padding: 5px;
-    background-color: var(--background-color);
+    background-color: var(--bg-color);
     color: var(--text-color);
     border: 1px solid var(--border-color);
 }
@@ -87,35 +87,11 @@
     padding: 4px 10px;
     border-radius: 4px;
     font-size: 13px;
-    background-color: var(--button-background-color);
-    color: var(--button-text-color);
+    background-color: var(--button-bg);
+    color: var(--button-text);
     border: 1px solid var(--border-color);
 }
 
 .delete-btn:hover {
-    background-color: var(--button-hover-background-color);
-}
-
-/* 다크 테마 리스트 전용 스타일 */
-.dark-theme #toolbar {
-    background-color: #222;
-}
-
-.dark-theme .note {
-    border-bottom: 1px solid #444;
-}
-
-.dark-theme .note:hover {
-    background-color: #2a2a2a;
-}
-
-.dark-theme #add,
-.dark-theme #search {
-    background-color: #2a2a2a;
-    color: #eee;
-    border: 1px solid #666;
-}
-
-.dark-theme #add:hover {
-    background-color: #444;
+    background-color: var(--button-hover);
 } 

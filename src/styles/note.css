@@ -18,7 +18,7 @@ body {
     font-size: 16px;
     padding: 10px;
     resize: none;
-    background-color: var(--background-color);
+    background-color: var(--bg-color);
     color: var(--text-color);
     border: 1px solid var(--border-color);
 }
@@ -28,7 +28,7 @@ body {
     overflow-y: auto;
     height: 100%;
     box-sizing: border-box;
-    background-color: var(--background-color);
+    background-color: var(--bg-color);
     color: var(--text-color);
 }
 

@@ -32,6 +32,11 @@ ipcRenderer.on('shortcuts-updated', (event, newShortcuts) => {
     shortcuts = newShortcuts;
 });
 
+// Listen for theme changes from the main process
+ipcRenderer.on('theme-changed', (event, theme) => {
+  applyTheme(theme);
+});
+
 // Helper function to check if a key combination matches a shortcut
 function matchesShortcut(e, shortcut) {
     const isMac = process.platform === 'darwin';
@@ -292,6 +297,11 @@ function surround(before, after = before) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // 초기 테마 설정
+  ipcRenderer.invoke('get-current-theme').then(theme => {
+      applyTheme(theme);
+  });
+
   // 앱 루트 경로 가져오기
   appRootPath = await ipcRenderer.invoke('get-app-path');
   
@@ -641,14 +651,4 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   // 이미지 붙여넣기 이벤트 리스너 추가
   editor.addEventListener('paste', handleImagePaste);
-
-  // 초기 테마 설정
-  ipcRenderer.on('set-initial-theme', (event, theme) => {
-    applyTheme(theme);
-  });
-
-  // 테마 변경 이벤트 수신
-  ipcRenderer.on('theme-changed', (event, theme) => {
-    applyTheme(theme);
-  });
 });

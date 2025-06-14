@@ -35,6 +35,7 @@ let Store; // Declare Store as a variable globally
 let store; // Declare store instance globally
 
 let mainWindow;
+let settingsWindow; // Add this line to declare settingsWindow globally
 
 function createMainWindow() {
   mainWindow = new BrowserWindow({
@@ -461,7 +462,12 @@ app.on('before-quit', writeSessionNow);
 
 // 설정 창 생성 함수
 function createSettingsWindow() {
-  let settingsWindow = new BrowserWindow({
+  if (settingsWindow && !settingsWindow.isDestroyed()) {
+    settingsWindow.focus();
+    return;
+  }
+
+  settingsWindow = new BrowserWindow({
     width: 600,
     height: 400,
     frame: false,
