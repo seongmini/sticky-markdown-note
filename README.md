@@ -12,6 +12,8 @@ A lightweight, always-on-top sticky note applicatoin with Markdown support, buil
 - **Window Memory**: Remembers last position and size of each note window.
 - **Keyboard Shortcuts**: See below for a comprehensive list.
 - **Cross-Platform**: Supports both Windows and macOS (macOS version is built but not tested).
+- **Image Handling**: Paste images directly from clipboard, saved locally with automatic cleanup for orphaned images.
+- **Interactive Checkboxes**: Click rendered checkboxes in preview to update markdown.
 
 ## Installation
 
