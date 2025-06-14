@@ -12,7 +12,7 @@ body {
     flex-direction: column;
 }
 
-/* 툴바 스타일 */
+/* Toolbar styles */
 #toolbar {
     padding: 0 10px;
     border-bottom: 1px solid var(--border-color);

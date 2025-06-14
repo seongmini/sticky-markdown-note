@@ -15,10 +15,10 @@ const stateFilePath = path.join(app.getPath('userData'), 'note-window-state.json
 const notesDir = path.join(app.getPath('userData'), 'notes');
 if (!fs.existsSync(notesDir)) fs.mkdirSync(notesDir, { recursive: true });
 
-// 마지막 세션(열려 있던 노트들) 저장용
+// For saving the last session (open notes)
 const sessionFile = path.join(app.getPath('userData'), 'last-session.json');
 
-// === 세션 즉시 저장 함수 ===
+// === Immediate Session Save Function ===
 function writeSessionNow() {
   const openPaths = Object.keys(openNoteWindows).filter(fullPath => {
     const w = openNoteWindows[fullPath];
@@ -50,35 +50,35 @@ function createMainWindow() {
 
   mainWindow.loadFile('src/renderer/list/list.html');
 
-  // 설정 버튼 클릭 이벤트 핸들러
+  // Settings button click event handler
   ipcMain.on('open-settings-window', () => {
     createSettingsWindow();
   });
 }
 
 function createNoteWindow(notePath, position = null, isNew = false) {
-  const fullPath = path.resolve(notePath); // 경로 표준화
+  const fullPath = path.resolve(notePath); // Standardize path
 
   if (!fs.existsSync(fullPath)) {
     console.error('This file does not exist:', fullPath);
     return;
   }
 
-  // 이미 열려 있는 창이면 포커싱만 함
+  // If window is already open, just focus it
   if (openNoteWindows[fullPath]) {
     if (!openNoteWindows[fullPath].isDestroyed()) {
       openNoteWindows[fullPath].focus();
       return;
     } else {
-      // 파괴됐는데 아직 등록된 경우 -> 정리하고 새로 연다
+      // If destroyed but still registered -> clean up and reopen
       delete openNoteWindows[fullPath];
     }
   }
 
-  // 이전 위치/크기 불러오기
+  // Load previous position/size
   const savedBounds = loadWindowState(fullPath);
 
-  // 새 창 생성
+  // Create new window
   const win = new BrowserWindow({
     width: savedBounds?.width || 400,
     height: savedBounds?.height || 400,
@@ -93,7 +93,7 @@ function createNoteWindow(notePath, position = null, isNew = false) {
 
   win.loadFile('src/renderer/note/note.html');
 
-  // 초기 테마 설정
+  // Set initial theme
   win.webContents.once('did-finish-load', () => {
     if (store) { // Ensure 'store' is initialized before accessing it
       win.webContents.send('theme-changed', store.get('theme'));
@@ -111,41 +111,41 @@ function createNoteWindow(notePath, position = null, isNew = false) {
 
   win.on('blur', () => {
     win.webContents.send('window-blurred');
-    win.flashFrame(false); // 포커스를 잃을 때 깜박거림 중지
+    win.flashFrame(false); // Stop flashing when focus is lost
   });
 
   win.on('close', () => {
-    // 창 위치/크기 저장
+    // Save window position/size
     const bounds = win.getBounds();
     saveWindowState(fullPath, bounds);
   });
 
   win.on('moved', () => {
-    // 창이 이동될 때마다 저장
+    // Save every time the window is moved
     const bounds = win.getBounds();
     saveWindowState(fullPath, bounds);
   });
 
   win.on('resized', () => {
-    // 창 크기가 변경될 때마다 저장
+    // Save every time the window is resized
     const bounds = win.getBounds();
     saveWindowState(fullPath, bounds);
   });
 
   win.on('closed', () => {
     delete openNoteWindows[fullPath];
-    writeSessionNow(); // 창이 사라졌으니 다시 저장장
+    writeSessionNow(); // Window closed, save session again
 
-    // 창 닫히면 목록 갱신
+    // Refresh list when window is closed
     if (mainWindow && !mainWindow.isDestroyed() && mainWindow.webContents) {
       mainWindow.webContents.send('refresh-list');
     }
   });
 
-  // 메모 경로 -> 창 등록
+  // Register note path -> window
   openNoteWindows[fullPath] = win;
 
-  // 창이 새로 열렸으니 바로 세션 저장
+  // Window is new, save session immediately
   writeSessionNow();
 }
 
@@ -154,13 +154,13 @@ function createNewNote(position = null) {
   const fileName = `note-${timestamp}.md`;
   const filePath = path.join(notesDir, fileName);
 
-  // 파일 내용 비워두고 생성
+  // Create file with empty content
   fs.writeFileSync(filePath, '', 'utf-8');
 
-  // 새 창 열기
+  // Open new window
   createNoteWindow(filePath, position, /* isNew */ true);
 
-  // 목록 창에게 새로고침 요청
+  // Request refresh to list window
   if (mainWindow && !mainWindow.isDestroyed() && mainWindow.webContents) {
     mainWindow.webContents.send('refresh-list');
   }
@@ -298,17 +298,17 @@ ipcMain.on('delete-note', (event, noteFile) => {
     }
   }
 
-  // 파일 삭제
+  // Delete file
   if (fs.existsSync(fullPath)) {
     fs.unlinkSync(fullPath);
   }
 
-  // 창이 열려 있다면 닫기
+  // Close window if it's open
   if (openNoteWindows[fullPath]) {
-    openNoteWindows[fullPath].close(); // 'closed' 이벤트에서 자동 정리됨
+    openNoteWindows[fullPath].close(); // Automatically cleaned up in 'closed' event
   }
 
-  // 목록 갱신
+  // Refresh list
   if (mainWindow && !mainWindow.isDestroyed() && mainWindow.webContents) {
     mainWindow.webContents.send('refresh-list');
   }
@@ -316,9 +316,9 @@ ipcMain.on('delete-note', (event, noteFile) => {
 
 ipcMain.on('open-main-window', () => {
   if (!mainWindow || mainWindow.isDestroyed()) {
-    createMainWindow(); // 새로 생성
+    createMainWindow(); // Create new window
   } else {
-    mainWindow.focus(); // 기존 창 포커스
+    mainWindow.focus(); // Focus existing window
   }
 });
 
@@ -418,13 +418,13 @@ app.on('ready', async () => {
     return net.fetch(fullPath);
   });
 
-  // ===== 자동 업데이트 로직 시작 =====
-  // 개발 모드에서는 업데이트를 확인하지 않습니다.
+  // ===== Auto-update logic start =====
+  // Don't check for updates in development mode
   if (app.isPackaged) {
     autoUpdater.checkForUpdatesAndNotify();
 
     autoUpdater.on('update-available', () => {
-      // 사용자에게 업데이트가 있음을 알림 (필요시 대화상자 표시)
+      // Notify user about available update (show dialog if needed)
       console.log('Update available. Downloading...');
     });
 
@@ -447,7 +447,7 @@ app.on('ready', async () => {
       console.error(message);
     });
 
-    // (옵션) 다운로드 진행 상황 표시
+    // (Optional) Show download progress
     autoUpdater.on('download-progress', (progressObj) => {
       let log_message = "Download speed: " + progressObj.bytesPerSecond;
       log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
@@ -455,12 +455,12 @@ app.on('ready', async () => {
       console.log(log_message);
     });
   }
-  // ===== 자동 업데이트 로직 끝 =====
+  // ===== Auto-update logic end =====
 });
 
 app.on('before-quit', writeSessionNow);
 
-// 설정 창 생성 함수
+// Settings window creation function
 function createSettingsWindow() {
   if (settingsWindow && !settingsWindow.isDestroyed()) {
     settingsWindow.focus();

@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const userDataPath = await ipcRenderer.invoke('get-user-data-path');
   notesDir = path.join(userDataPath, 'notes');
 
-  // 초기 테마 설정
+  // Set initial theme
   ipcRenderer.invoke('get-current-theme').then(theme => {
       applyTheme(theme);
   });
@@ -50,14 +50,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         return {
           file: file,
           fullPath: fullPath,
-          mtime: stats.mtime.getTime() // 최종 수정 시간 (timestamp)
+          mtime: stats.mtime.getTime() // Last modified time (timestamp)
         };
       })
-      .sort((a, b) => b.mtime - a.mtime); // 수정 시간 내림차순 정렬 (최신순)
+      .sort((a, b) => b.mtime - a.mtime); // Sort by modification time in descending order (latest first)
 
     allNoteFiles.forEach(note => {
       const content = fs.readFileSync(note.fullPath, 'utf-8');
-      // const stats = fs.statSync(fullPath); // stats는 이미 note 객체에 포함되어 있으므로 제거
+      // const stats = fs.statSync(fullPath); // stats is already included in the note object, so remove
       const lowerContent = content.toLowerCase();
       const lowerTitle = getNoteTitle(content).toLowerCase();
       if (

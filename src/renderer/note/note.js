@@ -17,8 +17,8 @@ const fontSizeMax = parseInt(process.env.FONT_SIZE_MAX) || 40;
 
 let currentPath = null;
 let currentFontSize = defaultFontSize;
-let userImagesDir = null; // 사용자 이미지 저장 경로
-let appRootPath = null; // 앱 루트 경로를 저장할 변수
+let userImagesDir = null; // User image save path
+let appRootPath = null; // Variable to store the app root path
 
 let shortcuts = {};
 
@@ -51,21 +51,21 @@ function matchesShortcut(e, shortcut) {
     return e.key.toLowerCase() === shortcut.key;
 }
 
-// 고아 이미지 관리
+// Orphaned image management
 class OrphanedImageManager {
   constructor() {
-    // this.ONE_HOUR = 60 * 60 * 1000; // 1시간을 밀리초로 - 이 조건은 더 이상 사용하지 않습니다.
+    // 1 hour in milliseconds - this condition is no longer used.
   }
 
-  // 이미지 파일이 사용 중인지 확인
+  // Check if an image file is in use
   isImageInUse(markdownImagePath) {
-    if (!userImagesDir) return false; // userImagesDir가 설정되지 않았다면 검사할 수 없음
+    if (!userImagesDir) return false; // Cannot check if userImagesDir is not set
     
-    // 모든 노트가 저장되는 기본 디렉토리를 사용
+    // Use the base directory where all notes are stored
     const notesRootPath = path.dirname(userImagesDir);
     if (!fs.existsSync(notesRootPath)) return false;
 
-    // 재귀적으로 모든 .md 파일을 찾는 함수
+    // Function to recursively find all .md files
     const getAllMarkdownFiles = (dir) => {
       let markdownFiles = [];
       const files = fs.readdirSync(dir);
@@ -83,44 +83,44 @@ class OrphanedImageManager {
 
     const allNotes = getAllMarkdownFiles(notesRootPath);
 
-    // 'file:///' 접두사를 제거하고 백슬래시를 포워드 슬래시로 통일하여 경로 문자열 정규화
-    // 예: file:///C:/Users/User/AppData/Roaming/Sticky%20Markdown%20Note/notes/images/my%20image%20[1].png
-    //    -> C:/Users/User/AppData/Roaming/Sticky%20Markdown%20Note/notes/images/my%20image%20[1].png
+    // Normalize path string by removing 'file:///' prefix and unifying backslashes to forward slashes
+    // Example: file:///C:/Users/User/AppData/Roaming/Sticky%20Markdown%20Note/notes/images/my%20image%20[1].png
+    // -> C:/Users/User/AppData/Roaming/Sticky%20Markdown%20Note/notes/images/my%20image%20[1].png
     const normalizedRawPath = markdownImagePath.replace(/^file:\/\/\/?/, '').replace(/\\/g, '/');
 
-    // 가능한 마크다운 링크 형태를 모두 생성하여 정규식 패턴으로 만듭니다.
+    // Generate all possible markdown link forms to create regex patterns.
     const possiblePathPatterns = [];
 
-    // 1. 공백이 처리되지 않은 원본 경로 (raw path)
+    // 1. Original path with spaces (raw path)
     possiblePathPatterns.push(escapeRegExp(normalizedRawPath));
 
-    // 2. 공백이 %20으로 인코딩된 경로
+    // 2. Path with spaces encoded as %20
     possiblePathPatterns.push(escapeRegExp(normalizedRawPath.replace(/ /g, '%20')));
 
-    // 3. encodeURI로 인코딩된 경로 (일반적으로 사용)
-    // 주의: encodeURI는 모든 특수문자를 인코딩하지 않음 (예: [ ] ).
+    // 3. Path encoded with encodeURI (commonly used)
+    // Note: encodeURI does not encode all special characters (e.g., [ ]).
     try {
       possiblePathPatterns.push(escapeRegExp(encodeURI(normalizedRawPath)));
     } catch (e) {
       console.error("Error encoding URI for path:", normalizedRawPath, e);
     }
 
-    // 4. encodePathSpecialChars로 인코딩된 경로 (대괄호 등 추가 처리)
+    // 4. Path encoded with encodePathSpecialChars (additional handling for brackets, etc.)
     possiblePathPatterns.push(escapeRegExp(encodePathSpecialChars(normalizedRawPath)));
     
-    // 각 패턴에 'file:///' 및 'file://' 접두사를 추가하여 최종 패턴 생성
+    // Add 'file:///' and 'file://' prefixes to each pattern to create final patterns
     const finalRegexPatterns = [];
     for (const pattern of possiblePathPatterns) {
-      // file:/// 접두사
+      // file:/// prefix
       finalRegexPatterns.push(`file:\/\/\/?${pattern}`);
-      // file:// 접두사 (가끔 발생할 수 있는 경우 대비)
+      // file:// prefix (for cases where it might sometimes occur)
       finalRegexPatterns.push(`file:\/\/${pattern}`);
     }
 
-    // 모든 패턴을 OR(|)로 연결하여 최종 정규식 생성
+    // Combine all patterns with OR (|) to create the final regex
     const fullRegex = new RegExp(
       `(?:${finalRegexPatterns.join('|')})`,
-      'gi' // 전역 및 대소문자 구분 없음
+      'gi' // Global and case-insensitive
     );
 
     for (const notePath of allNotes) {
@@ -136,7 +136,7 @@ class OrphanedImageManager {
     return false;
   }
 
-  // 고아 이미지 정리
+  // Clean up orphaned images
   cleanupOrphanedImages() {
     if (!userImagesDir || !fs.existsSync(userImagesDir)) return;
 
@@ -146,7 +146,7 @@ class OrphanedImageManager {
     for (const image of images) {
       const imagePath = path.join(userImagesDir, image);
       try {
-        // 이미지의 완전한 마크다운 링크 경로를 생성하여 isImageInUse로 전달
+        // Create markdown image link (using file:// protocol and absolute path)
         const absoluteImagePathForMarkdown = `file:///${imagePath.replace(/\\/g, '/')}`;
         if (!this.isImageInUse(absoluteImagePathForMarkdown)) {
           fs.unlinkSync(imagePath);
@@ -159,44 +159,44 @@ class OrphanedImageManager {
   }
 }
 
-// 고아 이미지 매니저 인스턴스 생성
+// Orphaned image manager instance
 const orphanedImageManager = new OrphanedImageManager();
 
-// 정규식에서 특수문자를 이스케이프하는 헬퍼 함수
+// Helper function to escape special characters in a regex
 function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the matched substring
 }
 
-// URL 경로에서 특정 특수문자를 인코딩하는 헬퍼 함수
-// (encodeURI는 일부 문자를 인코딩하지 않으므로 직접 처리)
+// Helper function to encode specific special characters in a URL path
+// (encodeURI does not encode some characters, so handle manually)
 function encodePathSpecialChars(pathStr) {
   return pathStr
-    .replace(/ /g, '%20') // 공백
-    .replace(/\(/g, '%28') // 여는 소괄호
-    .replace(/\)/g, '%29') // 닫는 소괄호
-    .replace(/\[/g, '%5B') // 여는 대괄호
-    .replace(/\]/g, '%5D') // 닫는 대괄호
-    .replace(/\+/g, '%2B') // 더하기 기호
-    .replace(/\#/g, '%23') // 샵 기호
-    .replace(/\?/g, '%3F') // 물음표
-    .replace(/\&/g, '%26'); // 앰퍼샌드
+    .replace(/ /g, '%20') // Spaces
+    .replace(/\(/g, '%28') // Opening parenthesis
+    .replace(/\)/g, '%29') // Closing parenthesis
+    .replace(/\[/g, '%5B') // Opening square bracket
+    .replace(/\]/g, '%5D') // Closing square bracket
+    .replace(/\+/g, '%2B') // Plus sign
+    .replace(/\#/g, '%23') // Hash symbol
+    .replace(/\?/g, '%3F') // Question mark
+    .replace(/\&/g, '%26'); // Ampersand
 }
 
-// app-asset:/// 링크를 file:// 링크로 변환하는 함수
+// Function to convert app-asset:/// links to file:// links
 async function convertAppAssetLinks(content) {
   if (!content) return content;
   
-  // app-asset:/// 링크를 찾아서 file:// 링크로 변환
+  // Find app-asset:/// links and convert them to file:// links
   return content.replace(/!\[([^\]]*)\]\(app-asset:\/\/\/([^)]+)\)/g, (match, alt, assetPath) => {
-    // app-asset 경로에서 실제 파일 경로 추출
+    // Extract actual file path from app-asset path
     const imagePath = path.join(appRootPath, assetPath);
-    // file:// 프로토콜과 절대 경로로 변환
+    // Convert to file:// protocol and absolute path
     const filePath = `file:///${imagePath.replace(/\\/g, '/')}`;
     return `![${alt}](${filePath})`;
   });
 }
 
-// 이미지 붙여넣기 처리
+// Handle image paste
 async function handleImagePaste(event) {
   const items = event.clipboardData.items;
   
@@ -208,21 +208,21 @@ async function handleImagePaste(event) {
       const buffer = await file.arrayBuffer();
       const imageBuffer = Buffer.from(buffer);
       
-      // 이미지 파일명 생성 (timestamp + random string)
+      // Generate image filename (timestamp + random string)
       const timestamp = Date.now();
       const random = Math.random().toString(36).substring(2, 8);
       const ext = file.type.split('/')[1];
       const filename = `${timestamp}-${random}.${ext}`;
       const imagePath = path.join(userImagesDir, filename);
       
-      // 이미지 저장
+      // Save image
       fs.writeFileSync(imagePath, imageBuffer);
       
-      // 마크다운 이미지 링크 생성 (file:// 프로토콜과 절대 경로 사용)
+      // Create markdown image link (using file:// protocol and absolute path)
       const absoluteImagePath = `file:///${imagePath.replace(/\\/g, '/')}`;
       const imageMarkdown = `![${filename}](${absoluteImagePath})`;
       
-      // 에디터에 이미지 링크 삽입
+      // Insert image link into editor
       const editor = document.getElementById('editor');
       const start = editor.selectionStart;
       const end = editor.selectionEnd;
@@ -230,14 +230,14 @@ async function handleImagePaste(event) {
       editor.value = text.slice(0, start) + imageMarkdown + text.slice(end);
       editor.selectionStart = editor.selectionEnd = start + imageMarkdown.length;
       
-      // 프리뷰 업데이트
+      // Update preview
       const preview = document.getElementById('preview');
       preview.innerHTML = renderMathInMarkdown(editor.value);
       
-      // 파일 저장
+      // Save file
       if (currentPath) {
         fs.writeFile(currentPath, String(editor.value), () => {
-          // 이미지가 추가되었으므로 고아 이미지 정리
+          // Image added, so clean up orphaned images
           orphanedImageManager.cleanupOrphanedImages();
         });
       }
@@ -252,19 +252,19 @@ marked.setOptions({
   gfm: true,
 });
 
-// 전역 렌더러 인스턴스 생성
+// Create global renderer instance
 const checkboxManager = new CheckboxManager();
 
-// 수식이 포함된 마크다운인지 확인하는 함수
+// Function to check if markdown contains math expressions
 function hasMathExpression(markdown) {
   return /\$(.+?)\$/.test(markdown);
 }
 
 function renderMathInMarkdown(markdown) {
-  // 체크박스 렌더링
+  // Render checkboxes
   let html = checkboxManager.renderCheckboxes(markdown);
   
-  // 수식이 있는 경우에만 수식 렌더링
+  // Render math expressions only if they exist
   if (hasMathExpression(markdown)) {
     html = html.replace(/\$(.+?)\$/g, (_, expr) => {
       try {
@@ -297,24 +297,24 @@ function surround(before, after = before) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // 초기 테마 설정
+  // Set initial theme
   ipcRenderer.invoke('get-current-theme').then(theme => {
       applyTheme(theme);
   });
 
-  // 앱 루트 경로 가져오기
+  // Get app root path
   appRootPath = await ipcRenderer.invoke('get-app-path');
   
   const userDataPath = await ipcRenderer.invoke('get-user-data-path');
   const settingsPath = path.join(userDataPath, 'settings.json');
 
-  // 사용자 이미지 저장 경로 설정 및 폴더 생성
+  // Set user image save path and create folder
   userImagesDir = path.join(userDataPath, 'notes', 'images');
   if (!fs.existsSync(userImagesDir)) {
     fs.mkdirSync(userImagesDir, { recursive: true });
   }
 
-  // 초기 고아 이미지 정리
+  // Initial orphaned image cleanup
   console.log('DOMContentLoaded: Initial cleanup triggered.');
   orphanedImageManager.cleanupOrphanedImages();
 
@@ -330,7 +330,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let onlyTarget = 'preview';
   let saveTimeout = null;
 
-  // 체크박스 클릭 이벤트 리스너 (이벤트 위임)
+  // Checkbox click event listener (event delegation)
   preview.addEventListener('change', (event) => {
     checkboxManager.handleCheckboxChange(event, editor, preview, currentPath);
   });
@@ -368,7 +368,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }
   } catch {
-    // 설정 파일이 없거나 잘못된 형식인 경우 무시
+    // Ignore if settings file does not exist or is malformed
   }
 
   editor.style.fontSize = `${currentFontSize}px`;
@@ -381,12 +381,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     if (currentPath && fs.existsSync(currentPath)) {
       let content = fs.readFileSync(currentPath, 'utf-8');
-      // 기존 app-asset:/// 링크를 file:// 링크로 변환
+      // Convert existing app-asset:/// links to file:// links
       content = await convertAppAssetLinks(content);
       editor.value = content;
       preview.innerHTML = renderMathInMarkdown(content);
       
-      // 변환된 내용이 있다면 파일에 저장
+      // If content was converted, save to file
       if (content !== fs.readFileSync(currentPath, 'utf-8')) {
         fs.writeFile(currentPath, content, () => {});
       }
@@ -406,7 +406,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const text = editor.value;
     preview.innerHTML = renderMathInMarkdown(text);
     
-    // 자동 저장 (1초 디바운스)
+    // Auto-save (1-second debounce)
     if (currentPath) {
       if (saveTimeout) {
         clearTimeout(saveTimeout);
@@ -553,12 +553,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const after = editor.value.slice(end);
         editor.value = before + newText + after;
         
-        // 커서 위치 조정
+        // Adjust cursor position
         if (start === end) {
-            // 단일 커서인 경우
+            // For single cursor
             editor.selectionStart = editor.selectionEnd = start + 4;
         } else {
-            // 여러 줄이 선택된 경우
+            // For multi-line selection
             editor.selectionStart = start;
             editor.selectionEnd = start + newText.length;
         }
@@ -577,7 +577,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const lines = before.split('\n');
         const currentLine = lines[lines.length - 1];
         
-        // 글머리기호 연속 처리
+        // Handle consecutive bullet points
         const bulletMatch = currentLine.match(/^(\s*[-*+]\s)/);
         const numberMatch = currentLine.match(/^(\s*\d+\.\s)/);
         
@@ -585,17 +585,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             e.preventDefault();
             const bullet = bulletMatch ? bulletMatch[1] : numberMatch[1];
             
-            // 현재 줄이 글머리기호만 있는 경우 (내용이 없는 경우)
+            // If current line only contains a bullet point (no content)
             if (currentLine.trim() === bullet.trim()) {
-                // 글머리기호를 제거하고 새 줄 추가
+                // Remove bullet point and add new line
                 const newText = before.slice(0, -currentLine.length) + '\n' + after;
                 editor.value = newText;
                 editor.selectionStart = editor.selectionEnd = start - currentLine.length;
             } else {
-                // 일반적인 경우: 다음 줄에 글머리기호 추가
+                // Normal case: add bullet point to next line
                 let nextBullet = bullet;
                 if (numberMatch) {
-                    // 숫자 목록인 경우 다음 숫자로 증가
+                    // For numbered lists, increment to the next number
                     const currentNumber = parseInt(numberMatch[1]);
                     const indent = numberMatch[1].match(/^(\s*)/)[0];
                     nextBullet = `${indent}${currentNumber + 1}. `;
@@ -649,6 +649,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   ipcRenderer.send('note-ready');
   
-  // 이미지 붙여넣기 이벤트 리스너 추가
+  // Add image paste event listener
   editor.addEventListener('paste', handleImagePaste);
 });

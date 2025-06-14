@@ -6,11 +6,13 @@ A lightweight, always-on-top sticky note applicatoin with Markdown support, buil
 
 - **Persistent Notes**: Notes saved as `.md` files in your user data directory.
 - **Live Preview**: Real-time Markdown rendering with KaTex math support.
-- **Light/Dark Themes**: Toggle between light and dark modes.
+- **Customizable Themes**: Toggle between light and dark modes via a dedicated settings window.
 - **Autosave & Session Restore**: Automatically restores open notes on startup.
 - **Search & Filter**: Quickly find notes by title or content.
+- **Note List Sorting**: Notes are automatically sorted by their last modification date.
 - **Window Memory**: Remembers last position and size of each note window.
-- **Keyboard Shortcuts**: See below for a comprehensive list.
+- **Customizable Keyboard Shortcuts**: Personalize keybindings for various actions through the settings interface.
+- **Automatic Updates**: App automatically checks for and installs updates from GitHub releases.
 - **Cross-Platform**: Supports both Windows and macOS (macOS version is built but not tested).
 - **Image Handling**: Paste images directly from clipboard, saved locally with automatic cleanup for orphaned images.
 - **Interactive Checkboxes**: Click rendered checkboxes in preview to update markdown.
@@ -66,6 +68,7 @@ After building, you'll find:
 3. Select a note in the list to open it in its own window.
 4. Edit text on the left; preview appears on the right.
 5. Use search or shortcuts to navigate and manage notes.
+6. Access **Settings** from the Memo List window to customize themes and shortcuts.
 
 ## Configuration
 
@@ -87,12 +90,12 @@ THEME=LIGHT # or dark
 | **Ctrl+P** / **Cmd+P** | Switch to **Both** view mode                              |
 | **Ctrl+O** / **Cmd+O** | Toggle between **Editor Only** and **Preview Only** modes |
 | **Ctrl+M** / **Cmd+M** | Open the **Memo List** window                             |
+| **Ctrl+N** / **Cmd+N** | Create a **New Note**                                     |
 
 ### In Note Editor Window
 
 | Shortcut               | Action                                   |
 | ---------------------- | ---------------------------------------- |
-| **Ctrl+N** / **Cmd+N** | Create a **New Note**                    |
 | **Ctrl+B** / **Cmd+B** | **Bold** formatting (`**text**`)         |
 | **Ctrl+I** / **Cmd+I** | *Italic* formatting (`*text*`)           |
 | **Ctrl+\`** / **Cmd+\`** | Inline `code` formatting                 |
@@ -114,12 +117,6 @@ THEME=LIGHT # or dark
 | ---------------------- | -------------------------- |
 | **Ctrl+N** / **Cmd+N** | Create a **New Note**      |
 | **Ctrl+F** / **Cmd+F** | Focus the **Search** input |
-
-### Theme Toggle
-
-| Control         | Action                                       |
-| --------------- | -------------------------------------------- |
-| 🌗 Theme button | Toggle between **Light** and **Dark** themes |
 
 ## Support
 

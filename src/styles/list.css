@@ -1,4 +1,4 @@
-/* 타이틀바 스타일 */
+/* Titlebar styles */
 /* #titlebar {
     padding: 10px;
     border-bottom: 1px solid var(--border-color);
@@ -25,7 +25,7 @@
     background-color: var(--button-hover);
 } */
 
-/* 노트 리스트 스타일 */
+/* Note list styles */
 .note {
     padding: 10px;
     border-bottom: 1px solid var(--border-color);
@@ -50,7 +50,7 @@
     overflow-y: auto;
 }
 
-/* 툴바 스타일 */
+/* Toolbar styles */
 #toolbar {
     padding: 10px;
     border-bottom: 1px solid var(--border-color);

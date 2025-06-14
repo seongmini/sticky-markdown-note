@@ -9,12 +9,12 @@ class CheckboxManager {
     };
   }
 
-  // 마크다운에서 체크박스 HTML로 변환
+  // Convert markdown to checkbox HTML
   renderCheckboxes(markdown) {
     return marked.parse(markdown, { renderer: this.renderer });
   }
 
-  // 체크박스 상태 변경 시 부분 업데이트
+  // Partial update when checkbox state changes
   updateCheckboxState(checkbox, editor, preview) {
     const checkboxes = Array.from(preview.querySelectorAll('input[type="checkbox"]'));
     const idx = checkboxes.indexOf(checkbox);
@@ -25,7 +25,7 @@ class CheckboxManager {
     let checkboxLineIdx = -1;
     let found = 0;
 
-    // 변경된 체크박스의 라인 찾기
+    // Find the line of the changed checkbox
     for (let i = 0; i < lines.length; i++) {
       if (/^\s*- \[[ x]\]/.test(lines[i])) {
         if (found === idx) {
@@ -37,7 +37,7 @@ class CheckboxManager {
     }
     if (checkboxLineIdx === -1) return;
 
-    // 체크박스 상태 업데이트
+    // Update checkbox state
     const indent = lines[checkboxLineIdx].match(/^\s*/)[0];
     const newLine = lines[checkboxLineIdx].replace(
       /^\s*- \[[ x]\]/,
@@ -45,13 +45,13 @@ class CheckboxManager {
     );
     lines[checkboxLineIdx] = newLine;
 
-    // 에디터와 프리뷰 업데이트
+    // Update editor and preview
     editor.value = lines.join('\n');
     
-    // 에디터의 input 이벤트를 수동으로 트리거하여 프리뷰를 업데이트합니다.
+    // Manually trigger the editor's input event to update the preview.
     editor.dispatchEvent(new Event('input'));
 
-    // 부분 업데이트: 체크박스 요소만 업데이트
+    // Partial update: update only the checkbox element
     // const checkboxElement = checkboxes[idx];
     // checkboxElement.checked = checkbox.checked;
 
@@ -63,7 +63,7 @@ class CheckboxManager {
 
     const updatedContent = this.updateCheckboxState(event.target, editor, preview);
     
-    // 파일이 열려있는 경우에만 저장
+    // Save only if file is open
     if (currentPath && updatedContent) {
       fs.writeFile(currentPath, updatedContent, () => {});
     }
