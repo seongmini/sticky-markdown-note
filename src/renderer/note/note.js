@@ -5,6 +5,7 @@ const katex = require('katex');
 const fs = require('fs');
 const path = require('path');
 const { getInitialTheme, applyTheme } = require('../../shared/theme');
+const CheckboxManager = require('./checkbox');
 
 const defaultFontSize = parseInt(process.env.FONT_SIZE_DEFAULT) || 16;
 const fontSizeMin = parseInt(process.env.FONT_SIZE_MIN) || 8;
@@ -18,20 +19,29 @@ marked.setOptions({
   gfm: true,
 });
 
-function renderMathInMarkdown(markdown) {
-  const renderer = new marked.Renderer();
-  renderer.checkbox = (checked) => {
-    return `<input type="checkbox" ${checked ? 'checked' : ''}>`;
-  };
+// 전역 렌더러 인스턴스 생성
+const checkboxManager = new CheckboxManager();
 
-  let html = marked.parse(markdown, { renderer });
-  html = html.replace(/\$(.+?)\$/g, (_, expr) => {
-    try {
-      return katex.renderToString(expr, { throwOnError: false });
-    } catch (err) {
-      return `<code>${expr}</code>`;
-    }
-  });
+// 수식이 포함된 마크다운인지 확인하는 함수
+function hasMathExpression(markdown) {
+  return /\$(.+?)\$/.test(markdown);
+}
+
+function renderMathInMarkdown(markdown) {
+  // 체크박스 렌더링
+  let html = checkboxManager.renderCheckboxes(markdown);
+  
+  // 수식이 있는 경우에만 수식 렌더링
+  if (hasMathExpression(markdown)) {
+    html = html.replace(/\$(.+?)\$/g, (_, expr) => {
+      try {
+        return katex.renderToString(expr, { throwOnError: false });
+      } catch (err) {
+        return `<code>${expr}</code>`;
+      }
+    });
+  }
+  
   return html;
 }
 
@@ -391,33 +401,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 체크박스 클릭 이벤트 처리
   preview.addEventListener('change', e => {
-    if (e.target.type !== 'checkbox') return;
-    const checkboxes = Array.from(preview.querySelectorAll('input[type="checkbox"]'));
-    const idx = checkboxes.indexOf(e.target);
-    if (idx === -1) return;
-
-    const text = editor.value;
-    const lines = text.split('\n');
-    let checkboxLineIdx = -1;
-    let found = 0;
-    for (let i = 0; i < lines.length; i++) {
-      if (/^\s*- \[[ x]\]/.test(lines[i])) {
-        if (found === idx) {
-          checkboxLineIdx = i;
-          break;
-        }
-        found++;
-      }
-    }
-    if (checkboxLineIdx === -1) return;
-
-    const indent = lines[checkboxLineIdx].match(/^\s*/)[0];
-    lines[checkboxLineIdx] = lines[checkboxLineIdx].replace(/^\s*- \[[ x]\]/, `${indent}- [${e.target.checked ? 'x' : ' '}]`);
-    
-    editor.value = lines.join('\n');
-    preview.innerHTML = renderMathInMarkdown(editor.value);
-    if (currentPath) {
-      fs.writeFile(currentPath, editor.value, () => {});
-    }
+    checkboxManager.handleCheckboxChange(e, editor, preview, currentPath);
   });
 });
