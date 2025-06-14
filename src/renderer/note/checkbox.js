@@ -48,9 +48,12 @@ class CheckboxManager {
     // 에디터와 프리뷰 업데이트
     editor.value = lines.join('\n');
     
+    // 에디터의 input 이벤트를 수동으로 트리거하여 프리뷰를 업데이트합니다.
+    editor.dispatchEvent(new Event('input'));
+
     // 부분 업데이트: 체크박스 요소만 업데이트
-    const checkboxElement = checkboxes[idx];
-    checkboxElement.checked = checkbox.checked;
+    // const checkboxElement = checkboxes[idx];
+    // checkboxElement.checked = checkbox.checked;
 
     return lines.join('\n');
   }

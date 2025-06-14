@@ -13,6 +13,204 @@ const fontSizeMax = parseInt(process.env.FONT_SIZE_MAX) || 40;
 
 let currentPath = null;
 let currentFontSize = defaultFontSize;
+let userImagesDir = null; // 사용자 이미지 저장 경로
+let appRootPath = null; // 앱 루트 경로를 저장할 변수
+
+// 고아 이미지 관리
+class OrphanedImageManager {
+  constructor() {
+    // this.ONE_HOUR = 60 * 60 * 1000; // 1시간을 밀리초로 - 이 조건은 더 이상 사용하지 않습니다.
+  }
+
+  // 이미지 파일이 사용 중인지 확인
+  isImageInUse(markdownImagePath) {
+    if (!userImagesDir) return false; // userImagesDir가 설정되지 않았다면 검사할 수 없음
+    
+    // 모든 노트가 저장되는 기본 디렉토리를 사용
+    const notesRootPath = path.dirname(userImagesDir);
+    if (!fs.existsSync(notesRootPath)) return false;
+
+    // 재귀적으로 모든 .md 파일을 찾는 함수
+    const getAllMarkdownFiles = (dir) => {
+      let markdownFiles = [];
+      const files = fs.readdirSync(dir);
+      for (const file of files) {
+        const filePath = path.join(dir, file);
+        const stat = fs.statSync(filePath);
+        if (stat.isDirectory()) {
+          markdownFiles = markdownFiles.concat(getAllMarkdownFiles(filePath));
+        } else if (filePath.endsWith('.md')) {
+          markdownFiles.push(filePath);
+        }
+      }
+      return markdownFiles;
+    };
+
+    const allNotes = getAllMarkdownFiles(notesRootPath);
+
+    // 'file:///' 접두사를 제거하고 백슬래시를 포워드 슬래시로 통일하여 경로 문자열 정규화
+    // 예: file:///C:/Users/User/AppData/Roaming/Sticky%20Markdown%20Note/notes/images/my%20image%20[1].png
+    //    -> C:/Users/User/AppData/Roaming/Sticky%20Markdown%20Note/notes/images/my%20image%20[1].png
+    const normalizedRawPath = markdownImagePath.replace(/^file:\/\/\/?/, '').replace(/\\/g, '/');
+
+    // 가능한 마크다운 링크 형태를 모두 생성하여 정규식 패턴으로 만듭니다.
+    const possiblePathPatterns = [];
+
+    // 1. 공백이 처리되지 않은 원본 경로 (raw path)
+    possiblePathPatterns.push(escapeRegExp(normalizedRawPath));
+
+    // 2. 공백이 %20으로 인코딩된 경로
+    possiblePathPatterns.push(escapeRegExp(normalizedRawPath.replace(/ /g, '%20')));
+
+    // 3. encodeURI로 인코딩된 경로 (일반적으로 사용)
+    // 주의: encodeURI는 모든 특수문자를 인코딩하지 않음 (예: [ ] ).
+    try {
+      possiblePathPatterns.push(escapeRegExp(encodeURI(normalizedRawPath)));
+    } catch (e) {
+      console.error("Error encoding URI for path:", normalizedRawPath, e);
+    }
+
+    // 4. encodePathSpecialChars로 인코딩된 경로 (대괄호 등 추가 처리)
+    possiblePathPatterns.push(escapeRegExp(encodePathSpecialChars(normalizedRawPath)));
+    
+    // 각 패턴에 'file:///' 및 'file://' 접두사를 추가하여 최종 패턴 생성
+    const finalRegexPatterns = [];
+    for (const pattern of possiblePathPatterns) {
+      // file:/// 접두사
+      finalRegexPatterns.push(`file:\/\/\/?${pattern}`);
+      // file:// 접두사 (가끔 발생할 수 있는 경우 대비)
+      finalRegexPatterns.push(`file:\/\/${pattern}`);
+    }
+
+    // 모든 패턴을 OR(|)로 연결하여 최종 정규식 생성
+    const fullRegex = new RegExp(
+      `(?:${finalRegexPatterns.join('|')})`,
+      'gi' // 전역 및 대소문자 구분 없음
+    );
+
+    for (const notePath of allNotes) {
+      try {
+        const content = fs.readFileSync(notePath, 'utf-8');
+        if (fullRegex.test(content)) {
+          return true;
+        }
+      } catch (err) {
+        console.error(`Error reading note file ${notePath}:`, err);
+      }
+    }
+    return false;
+  }
+
+  // 고아 이미지 정리
+  cleanupOrphanedImages() {
+    if (!userImagesDir || !fs.existsSync(userImagesDir)) return;
+
+    const images = fs.readdirSync(userImagesDir)
+      .filter(file => /\.(png|jpg|jpeg|gif|webp)$/i.test(file));
+
+    for (const image of images) {
+      const imagePath = path.join(userImagesDir, image);
+      try {
+        // 이미지의 완전한 마크다운 링크 경로를 생성하여 isImageInUse로 전달
+        const absoluteImagePathForMarkdown = `file:///${imagePath.replace(/\\/g, '/')}`;
+        if (!this.isImageInUse(absoluteImagePathForMarkdown)) {
+          fs.unlinkSync(imagePath);
+          console.log(`Deleted orphaned image: ${image}`);
+        }
+      } catch (err) {
+        console.error(`Failed to process image ${image}:`, err);
+      }
+    }
+  }
+}
+
+// 고아 이미지 매니저 인스턴스 생성
+const orphanedImageManager = new OrphanedImageManager();
+
+// 정규식에서 특수문자를 이스케이프하는 헬퍼 함수
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the matched substring
+}
+
+// URL 경로에서 특정 특수문자를 인코딩하는 헬퍼 함수
+// (encodeURI는 일부 문자를 인코딩하지 않으므로 직접 처리)
+function encodePathSpecialChars(pathStr) {
+  return pathStr
+    .replace(/ /g, '%20') // 공백
+    .replace(/\(/g, '%28') // 여는 소괄호
+    .replace(/\)/g, '%29') // 닫는 소괄호
+    .replace(/\[/g, '%5B') // 여는 대괄호
+    .replace(/\]/g, '%5D') // 닫는 대괄호
+    .replace(/\+/g, '%2B') // 더하기 기호
+    .replace(/\#/g, '%23') // 샵 기호
+    .replace(/\?/g, '%3F') // 물음표
+    .replace(/\&/g, '%26'); // 앰퍼샌드
+}
+
+// app-asset:/// 링크를 file:// 링크로 변환하는 함수
+async function convertAppAssetLinks(content) {
+  if (!content) return content;
+  
+  // app-asset:/// 링크를 찾아서 file:// 링크로 변환
+  return content.replace(/!\[([^\]]*)\]\(app-asset:\/\/\/([^)]+)\)/g, (match, alt, assetPath) => {
+    // app-asset 경로에서 실제 파일 경로 추출
+    const imagePath = path.join(appRootPath, assetPath);
+    // file:// 프로토콜과 절대 경로로 변환
+    const filePath = `file:///${imagePath.replace(/\\/g, '/')}`;
+    return `![${alt}](${filePath})`;
+  });
+}
+
+// 이미지 붙여넣기 처리
+async function handleImagePaste(event) {
+  const items = event.clipboardData.items;
+  
+  for (const item of items) {
+    if (item.type.indexOf('image') === 0) {
+      event.preventDefault();
+      
+      const file = item.getAsFile();
+      const buffer = await file.arrayBuffer();
+      const imageBuffer = Buffer.from(buffer);
+      
+      // 이미지 파일명 생성 (timestamp + random string)
+      const timestamp = Date.now();
+      const random = Math.random().toString(36).substring(2, 8);
+      const ext = file.type.split('/')[1];
+      const filename = `${timestamp}-${random}.${ext}`;
+      const imagePath = path.join(userImagesDir, filename);
+      
+      // 이미지 저장
+      fs.writeFileSync(imagePath, imageBuffer);
+      
+      // 마크다운 이미지 링크 생성 (file:// 프로토콜과 절대 경로 사용)
+      const absoluteImagePath = `file:///${imagePath.replace(/\\/g, '/')}`;
+      const imageMarkdown = `![${filename}](${absoluteImagePath})`;
+      
+      // 에디터에 이미지 링크 삽입
+      const editor = document.getElementById('editor');
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      const text = editor.value;
+      editor.value = text.slice(0, start) + imageMarkdown + text.slice(end);
+      editor.selectionStart = editor.selectionEnd = start + imageMarkdown.length;
+      
+      // 프리뷰 업데이트
+      const preview = document.getElementById('preview');
+      preview.innerHTML = renderMathInMarkdown(editor.value);
+      
+      // 파일 저장
+      if (currentPath) {
+        fs.writeFile(currentPath, String(editor.value), () => {
+          // 이미지가 추가되었으므로 고아 이미지 정리
+          orphanedImageManager.cleanupOrphanedImages();
+        });
+      }
+      
+      break;
+    }
+  }
+}
 
 marked.setOptions({
   breaks: true,
@@ -64,8 +262,21 @@ function surround(before, after = before) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // 앱 루트 경로 가져오기
+  appRootPath = await ipcRenderer.invoke('get-app-path');
+  
   const userDataPath = await ipcRenderer.invoke('get-user-data-path');
   const settingsPath = path.join(userDataPath, 'settings.json');
+
+  // 사용자 이미지 저장 경로 설정 및 폴더 생성
+  userImagesDir = path.join(userDataPath, 'notes', 'images');
+  if (!fs.existsSync(userImagesDir)) {
+    fs.mkdirSync(userImagesDir, { recursive: true });
+  }
+
+  // 초기 고아 이미지 정리
+  console.log('DOMContentLoaded: Initial cleanup triggered.');
+  orphanedImageManager.cleanupOrphanedImages();
 
   const editor = document.getElementById('editor');
   const preview = document.getElementById('preview');
@@ -79,6 +290,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let viewMode = 'only';
   let onlyTarget = 'preview';
+  let saveTimeout = null;
+
+  // 체크박스 클릭 이벤트 리스너 (이벤트 위임)
+  preview.addEventListener('change', (event) => {
+    checkboxManager.handleCheckboxChange(event, editor, preview, currentPath);
+  });
 
   function saveSettings() {
     const settings = { fontSize: currentFontSize };
@@ -119,15 +336,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   editor.style.fontSize = `${currentFontSize}px`;
   preview.style.fontSize = `${currentFontSize}px`;
 
-  ipcRenderer.on('load-note', (event, notePath, isNew) => {
+  ipcRenderer.on('load-note', async (event, notePath, isNew) => {
     currentPath = notePath;
     if (isNew) {
       viewMode = 'both';
     }
     if (currentPath && fs.existsSync(currentPath)) {
-      const content = fs.readFileSync(currentPath, 'utf-8');
+      let content = fs.readFileSync(currentPath, 'utf-8');
+      // 기존 app-asset:/// 링크를 file:// 링크로 변환
+      content = await convertAppAssetLinks(content);
       editor.value = content;
       preview.innerHTML = renderMathInMarkdown(content);
+      
+      // 변환된 내용이 있다면 파일에 저장
+      if (content !== fs.readFileSync(currentPath, 'utf-8')) {
+        fs.writeFile(currentPath, content, () => {});
+      }
     }
     updateView();
   });
@@ -143,8 +367,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   editor.addEventListener('input', () => {
     const text = editor.value;
     preview.innerHTML = renderMathInMarkdown(text);
+    
+    // 자동 저장 (1초 디바운스)
     if (currentPath) {
-      fs.writeFile(currentPath, text, () => {});
+      if (saveTimeout) {
+        clearTimeout(saveTimeout);
+      }
+      saveTimeout = setTimeout(() => {
+        fs.writeFile(currentPath, String(text), () => {});
+      }, 1000);
     }
   });
 
@@ -247,7 +478,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           if (numberMatch) {
             // 숫자 목록인 경우 다음 숫자로 증가
             const currentNumber = parseInt(numberMatch[1]);
-            const indent = numberMatch[1].match(/^(\s*)/)[1];
+            const indent = numberMatch[1].match(/^(\s*)/)[0];
             nextBullet = `${indent}${currentNumber + 1}. `;
           }
           const newText = before + '\n' + nextBullet + after;
@@ -398,9 +629,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   updateView();
 
   ipcRenderer.send('note-ready');
-
-  // 체크박스 클릭 이벤트 처리
-  preview.addEventListener('change', e => {
-    checkboxManager.handleCheckboxChange(e, editor, preview, currentPath);
-  });
+  
+  // 이미지 붙여넣기 이벤트 리스너 추가
+  editor.addEventListener('paste', handleImagePaste);
 });

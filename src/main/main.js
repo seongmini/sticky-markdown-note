@@ -1,5 +1,5 @@
 // main.js
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, protocol, net } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { execSync } = require('child_process');
@@ -307,6 +307,10 @@ ipcMain.handle('get-user-data-path', () => {
   return app.getPath('userData');
 });
 
+ipcMain.handle('get-app-path', () => {
+  return app.getAppPath();
+});
+
 app.whenReady().then(() => {
   // == only auto-launch in a packeaged build ==
   if (!app.isPackaged) {
@@ -354,6 +358,14 @@ app.whenReady().then(() => {
   if (!sessionRestored) {
     createMainWindow();
   }
+
+  // Register a custom protocol to serve local assets securely
+  protocol.handle('app-asset', (request) => {
+    const assetPath = request.url.replace(/^app-asset:\/\//, '');
+    const fullPath = path.join(app.getAppPath(), assetPath);
+    console.log('Serving asset:', fullPath);
+    return net.fetch(fullPath);
+  });
 });
 
 app.on('before-quit', writeSessionNow);

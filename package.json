@@ -43,7 +43,8 @@
     },
     "files": [
       "src/**/*",
-      "package.json"
+      "package.json",
+      "assets/**/*"
     ],
     "win": {
       "target": "nsis",

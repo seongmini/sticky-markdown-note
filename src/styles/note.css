@@ -21,12 +21,27 @@ body {
 }
 
 #preview {
-    height: 50%;
-    width: 100%;
-    box-sizing: border-box;
-    padding: 10px;
+    padding: 20px;
     overflow-y: auto;
-    border-top: 1px solid #ccc;
+    height: 100%;
+    box-sizing: border-box;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+#preview img {
+    max-width: calc(100% - 40px);
+    height: auto;
+    display: block;
+    margin: 1em auto;
+    object-fit: contain;
+}
+
+#preview pre {
+    background-color: #f5f5f5;
+    padding: 1em;
+    border-radius: 4px;
+    overflow-x: auto;
 }
 
 /* 다크 테마 노트 전용 스타일 */
