@@ -19,18 +19,18 @@ marked.setOptions({
 });
 
 function renderMathInMarkdown(markdown) {
-  let html = marked.parse(markdown);
+  const renderer = new marked.Renderer();
+  renderer.checkbox = (checked) => {
+    return `<input type="checkbox" ${checked ? 'checked' : ''}>`;
+  };
+
+  let html = marked.parse(markdown, { renderer });
   html = html.replace(/\$(.+?)\$/g, (_, expr) => {
     try {
       return katex.renderToString(expr, { throwOnError: false });
     } catch (err) {
       return `<code>${expr}</code>`;
     }
-  });
-  html = html.replace(/<li>\s*<input type="checkbox"(.*?)>(.*?)<\/li>/g, (_, attrs, content) => {
-    const id = Math.random().toString(36).slice(2, 10);
-    const checked = attrs.includes('checked') ? 'checked' : '';
-    return `<li><label><input type="checkbox" ${checked} data-id="${id}"> ${content.trim()}</label></li>`;
   });
   return html;
 }
@@ -388,4 +388,36 @@ document.addEventListener('DOMContentLoaded', async () => {
   updateView();
 
   ipcRenderer.send('note-ready');
+
+  // 체크박스 클릭 이벤트 처리
+  preview.addEventListener('change', e => {
+    if (e.target.type !== 'checkbox') return;
+    const checkboxes = Array.from(preview.querySelectorAll('input[type="checkbox"]'));
+    const idx = checkboxes.indexOf(e.target);
+    if (idx === -1) return;
+
+    const text = editor.value;
+    const lines = text.split('\n');
+    let checkboxLineIdx = -1;
+    let found = 0;
+    for (let i = 0; i < lines.length; i++) {
+      if (/^\s*- \[[ x]\]/.test(lines[i])) {
+        if (found === idx) {
+          checkboxLineIdx = i;
+          break;
+        }
+        found++;
+      }
+    }
+    if (checkboxLineIdx === -1) return;
+
+    const indent = lines[checkboxLineIdx].match(/^\s*/)[0];
+    lines[checkboxLineIdx] = lines[checkboxLineIdx].replace(/^\s*- \[[ x]\]/, `${indent}- [${e.target.checked ? 'x' : ' '}]`);
+    
+    editor.value = lines.join('\n');
+    preview.innerHTML = renderMathInMarkdown(editor.value);
+    if (currentPath) {
+      fs.writeFile(currentPath, editor.value, () => {});
+    }
+  });
 });

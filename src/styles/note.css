@@ -84,4 +84,66 @@ body.only-mode #preview {
 
 .dark-theme #preview th {
     background-color: #2a2a2a;
+}
+
+/* 체크박스 스타일 */
+#preview input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #8F689D;
+  border-radius: 3px;
+  margin-right: 8px;
+  position: relative;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+#preview input[type="checkbox"]:checked {
+  background-color: #8F689D;
+  border-color: #8F689D;
+}
+
+#preview input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+#preview input[type="checkbox"]:hover {
+  border-color: #7A5A85;
+}
+
+#preview input[type="checkbox"]:checked:hover {
+  background-color: #7A5A85;
+  border-color: #7A5A85;
+}
+
+#preview label {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  user-select: none;
+}
+
+#preview li {
+  margin: 5px 0;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  margin: 4px 0;
+}
+
+.checkbox-text {
+  user-select: text;
+  cursor: text;
 } 
