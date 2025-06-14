@@ -1,5 +1,5 @@
 {
-  "name": "sticky-markdown-note",
+  "name": "sticky-markdown",
   "version": "1.2.4",
   "main": "src/main/main.js",
   "scripts": {
