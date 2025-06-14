@@ -28,12 +28,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function loadNotes() {
     container.innerHTML = '';
-    const files = fs.readdirSync(notesDir).reverse();
-    files.forEach(file => {
-      if (!file.endsWith('.md')) return;
-      const fullPath = path.join(notesDir, file);
-      const content = fs.readFileSync(fullPath, 'utf-8');
-      const stats = fs.statSync(fullPath);
+    
+    const allNoteFiles = fs.readdirSync(notesDir)
+      .filter(file => file.endsWith('.md'))
+      .map(file => {
+        const fullPath = path.join(notesDir, file);
+        const stats = fs.statSync(fullPath);
+        return {
+          file: file,
+          fullPath: fullPath,
+          mtime: stats.mtime.getTime() // 최종 수정 시간 (timestamp)
+        };
+      })
+      .sort((a, b) => b.mtime - a.mtime); // 수정 시간 내림차순 정렬 (최신순)
+
+    allNoteFiles.forEach(note => {
+      const content = fs.readFileSync(note.fullPath, 'utf-8');
+      // const stats = fs.statSync(fullPath); // stats는 이미 note 객체에 포함되어 있으므로 제거
       const lowerContent = content.toLowerCase();
       const lowerTitle = getNoteTitle(content).toLowerCase();
       if (
@@ -47,10 +58,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       div.className = 'note';
       div.innerHTML = `
                 <div class="title">${getNoteTitle(content)}</div>
-                <div class="time">${new Date(stats.mtime).toLocaleString()}</div>
+                <div class="time">${new Date(note.mtime).toLocaleString()}</div>
             `;
       div.addEventListener('click', () => {
-        ipcRenderer.send('open-note', file);
+        ipcRenderer.send('open-note', note.file);
       });
       div.addEventListener('contextmenu', e => {
         e.preventDefault();
@@ -66,7 +77,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         delBtn.style.border = '1px solid #888';
         delBtn.style.cursor = 'pointer';
         delBtn.addEventListener('click', () => {
-          ipcRenderer.send('delete-note', file);
+          ipcRenderer.send('delete-note', note.file);
           delBtn.remove();
         });
         document.body.appendChild(delBtn);

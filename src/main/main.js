@@ -3,6 +3,8 @@ const { app, BrowserWindow, ipcMain, protocol, net } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { execSync } = require('child_process');
+const { autoUpdater } = require('electron-updater');
+const { dialog } = require('electron');
 
 app.setAppUserModelId('com.hsmin.stickymarkdownnote');
 
@@ -311,52 +313,23 @@ ipcMain.handle('get-app-path', () => {
   return app.getAppPath();
 });
 
-app.whenReady().then(() => {
-  // == only auto-launch in a packeaged build ==
-  if (!app.isPackaged) {
-    console.warn('Dev mode - skipping auto-launch registration');
-  } else {
-    // 1) removing all automatic execution setting
-    cleanStartup();
+app.on('ready', () => {
+  createMainWindow();
 
-    // 2) setting automatic execution with platform-specific settings
-    if (process.platform === 'darwin') {
-      app.setLoginItemSettings({
-        openAtLogin: true,
-        path: process.execPath,
-        args: [],
-        name: app.getName(),
-        enabled: true
-      });
-    } else {
-      app.setLoginItemSettings({
-        openAtLogin: true,
-        path: process.execPath,
-        args: [],
-        name: app.getName(),
-      });
-    }
-  }
-  let sessionRestored = false;
-
-  // === 세션 복원 시도 ===
-  if (fs.existsSync(sessionFile)) {
-    try {
-      const paths = JSON.parse(fs.readFileSync(sessionFile, 'utf-8'));
-      for (const p of paths) {
-        if (fs.existsSync(p)) {
-          createNoteWindow(p);
-          sessionRestored = true;
-        }
+  // Last session restore
+  try {
+    if (fs.existsSync(sessionFile)) {
+      const lastSession = JSON.parse(fs.readFileSync(sessionFile, 'utf-8'));
+      if (Array.isArray(lastSession)) {
+        lastSession.forEach(notePath => {
+          if (fs.existsSync(notePath)) {
+            createNoteWindow(notePath, null, false);
+          }
+        });
       }
-    } catch (e) {
-      console.error('session recovering failed:', e);
     }
-  }
-
-  // 복원된 세션이 없을 때만 리스트 창 띄우기
-  if (!sessionRestored) {
-    createMainWindow();
+  } catch (e) {
+    console.error('last-session restore failed:', e);
   }
 
   // Register a custom protocol to serve local assets securely
@@ -366,6 +339,45 @@ app.whenReady().then(() => {
     console.log('Serving asset:', fullPath);
     return net.fetch(fullPath);
   });
+
+  // ===== 자동 업데이트 로직 시작 =====
+  // 개발 모드에서는 업데이트를 확인하지 않습니다.
+  if (app.isPackaged) {
+    autoUpdater.checkForUpdatesAndNotify();
+
+    autoUpdater.on('update-available', () => {
+      // 사용자에게 업데이트가 있음을 알림 (필요시 대화상자 표시)
+      console.log('Update available. Downloading...');
+    });
+
+    autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
+      const dialogOpts = {
+        type: 'info',
+        buttons: ['Restart', 'Later'],
+        title: 'Application Update',
+        message: process.platform === 'win32' ? releaseNotes : releaseName,
+        detail: 'A new version has been downloaded. Restart the application to apply the updates.'
+      };
+
+      dialog.showMessageBox(dialogOpts).then((returnValue) => {
+        if (returnValue.response === 0) autoUpdater.quitAndInstall();
+      });
+    });
+
+    autoUpdater.on('error', message => {
+      console.error('There was a problem updating the application');
+      console.error(message);
+    });
+
+    // (옵션) 다운로드 진행 상황 표시
+    autoUpdater.on('download-progress', (progressObj) => {
+      let log_message = "Download speed: " + progressObj.bytesPerSecond;
+      log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
+      log_message = log_message + ' (' + progressObj.transferred + '/' + progressObj.total + ')';
+      console.log(log_message);
+    });
+  }
+  // ===== 자동 업데이트 로직 끝 =====
 });
 
 app.on('before-quit', writeSessionNow);
