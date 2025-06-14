@@ -10,6 +10,13 @@
     --button-text: #333333;
     --border-color: #ddd;
     --hover-color: #eee;
+    --accent-color: #8F689D;
+    --accent-hover-color: #7A5A85;
+    --accent-button-text: #ffffff;
+    --light-accent-color: #E6DAEC;
+    --medium-accent-button-bg: #E8E8E8; /* 타이틀바보다 더 진한 회색 */
+    --ultra-light-hover: #FCF8FC; /* 아주 연한 호버 색상 (일반 버튼용) */
+    --titlebar-bg: #F5F5F5; /* 설정 창의 타이틀바 색상 */
 }
 
 /* 다크 모드 변수 오버라이드 */
@@ -22,6 +29,13 @@ body.dark-mode {
     --button-text: #ffffff;
     --border-color: #444;
     --hover-color: #2a2a2a;
+    --accent-color: #8F689D;
+    --accent-hover-color: #A07CAE;
+    --accent-button-text: #ffffff;
+    --light-accent-color: #3C334D;
+    --medium-accent-button-bg: #2D2D2D; /* 다크모드 타이틀바보다 더 진한 회색 */
+    --ultra-light-hover: #1F1B27; /* 아주 연한 호버 색상 (일반 버튼용) */
+    --titlebar-bg: #1a1a1a; /* 다크모드 설정 창의 타이틀바 색상 */
 }
 
 /* 기본 스타일 */
@@ -39,12 +53,12 @@ body {
 
 /* 타이틀바 스타일 */
 #titlebar {
-    height: 30px;
-    background-color: var(--titlebar-background-color);
-    color: var(--titlebar-text-color);
+    height: 36px;
+    background-color: var(--titlebar-bg);
+    color: var(--text-color);
     position: sticky;
     top: 0;
-    z-index: 999;
+    z-index: 99;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -56,40 +70,31 @@ body {
 }
 
 #titlebar button {
-    background: none;
-    border: none;
-    font-size: 16px;
-    cursor: pointer;
     -webkit-app-region: no-drag;
-    color: var(--titlebar-text-color);
+    height: 30px;
+    line-height: 30px;
+    padding: 0 10px;
+    font-size: 13px;
+    background-color: var(--titlebar-bg); /* 타이틀바 배경색과 동일하게 설정 */
+    color: var(--text-color);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 #titlebar button:hover {
-    background-color: var(--hover-color);
+    background-color: var(--button-hover); /* 호버 시 button-hover 색상 사용 */
 }
 
 #titlebar .title-btn {
-    background: var(--button-background-color);
-    color: var(--button-text-color);
-    border: 1px solid var(--border-color);
-    padding: 2px 10px;
-    font-size: 13px;
-    cursor: pointer;
     margin-left: 8px;
-    -webkit-app-region: no-drag;
-    border-radius: 4px;
-    opacity: 1 !important; /* Ensure opacity is not overridden */
-}
-
-#titlebar .title-btn:hover {
-    background-color: var(--button-hover-background-color);
+    opacity: 1 !important;
 }
 
 input,
-button,
 textarea,
 select {
-    background-color: var(--background-color);
+    background-color: var(--bg-color);
     color: var(--text-color);
     border: 1px solid var(--border-color);
 }
@@ -99,6 +104,19 @@ textarea::placeholder {
     color: var(--text-color);
 }
 
+/* Common button styles */
+button {
+    background-color: var(--medium-accent-button-bg);
+    color: var(--text-color);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s;
+    -webkit-app-region: no-drag;
+}
+
 button:hover {
-    background-color: var(--hover-color);
+    background-color: var(--ultra-light-hover);
 }

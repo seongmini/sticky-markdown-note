@@ -86,8 +86,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         delBtn.style.left = `${e.pageX}px`;
         delBtn.style.top = `${e.pageY}px`;
         delBtn.style.zIndex = '1000';
-        delBtn.style.background = 'white';
-        delBtn.style.border = '1px solid #888';
         delBtn.style.cursor = 'pointer';
         delBtn.addEventListener('click', () => {
           ipcRenderer.send('delete-note', note.file);

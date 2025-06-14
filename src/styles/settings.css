@@ -14,31 +14,33 @@ body {
 
 /* 툴바 스타일 */
 #toolbar {
-    padding: 10px;
+    padding: 0 10px;
     border-bottom: 1px solid var(--border-color);
     background: var(--bg-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
     -webkit-app-region: drag;
+    height: 36px;
 }
 
 #toolbar span {
     font-weight: bold;
 }
 
-#close-button {
+#toolbar button {
     -webkit-app-region: no-drag;
-    background: none;
-    border: none;
-    color: var(--text-color);
-    font-size: 18px;
     cursor: pointer;
-    padding: 4px 8px;
     border-radius: 4px;
+    background-color: var(--titlebar-bg);
+    color: var(--text-color);
+    height: 30px;
+    line-height: 30px;
+    padding: 0 10px;
+    font-size: 13px;
 }
 
-#close-button:hover {
+#toolbar button:hover {
     background-color: var(--button-hover);
 }
 
@@ -78,22 +80,6 @@ h2 {
 .setting-item label {
     font-size: 1.1em;
     color: var(--text-color);
-}
-
-button {
-    background-color: var(--button-bg);
-    color: var(--button-text);
-    border: 1px solid var(--border-color);
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9em;
-    transition: background-color 0.2s;
-    -webkit-app-region: no-drag;
-}
-
-button:hover {
-    background-color: var(--button-hover);
 }
 
 /* Shortcuts Section Styles */
