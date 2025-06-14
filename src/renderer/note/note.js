@@ -20,6 +20,32 @@ let currentFontSize = defaultFontSize;
 let userImagesDir = null; // 사용자 이미지 저장 경로
 let appRootPath = null; // 앱 루트 경로를 저장할 변수
 
+let shortcuts = {};
+
+// Load shortcuts
+ipcRenderer.invoke('get-shortcuts').then(savedShortcuts => {
+    shortcuts = savedShortcuts;
+});
+
+// Listen for shortcut updates
+ipcRenderer.on('shortcuts-updated', (event, newShortcuts) => {
+    shortcuts = newShortcuts;
+});
+
+// Helper function to check if a key combination matches a shortcut
+function matchesShortcut(e, shortcut) {
+    const isMac = process.platform === 'darwin';
+    const modifierKey = isMac ? e.metaKey : e.ctrlKey;
+    
+    // Check modifiers
+    if (shortcut.modifiers.includes('ctrl') && !modifierKey) return false;
+    if (shortcut.modifiers.includes('shift') && !e.shiftKey) return false;
+    if (shortcut.modifiers.includes('alt') && !e.altKey) return false;
+    
+    // Check key
+    return e.key.toLowerCase() === shortcut.key;
+}
+
 // 고아 이미지 관리
 class OrphanedImageManager {
   constructor() {
@@ -387,209 +413,190 @@ document.addEventListener('DOMContentLoaded', async () => {
     const end = editor.selectionEnd;
     const text = editor.value;
     const selected = text.slice(start, end);
-    const isMac = process.platform === 'darwin';
-    const modifierKey = isMac ? e.metaKey : e.ctrlKey;
 
-    if (modifierKey) {
-      switch (e.key.toLowerCase()) {
-        case 'p':
-          e.preventDefault();
-          viewMode = 'both';
-          updateView();
-          return;
-        case 'o':
-          e.preventDefault();
-          if (viewMode === 'both' || onlyTarget === 'preview') {
-            onlyTarget = 'editor';
-          } else {
-            onlyTarget = 'preview';
-          }
-          viewMode = 'only';
-          updateView();
-          return;
-        case 'm':
-          e.preventDefault();
-          ipcRenderer.send('open-main-window');
-          return;
-      }
+    // Check for custom shortcuts
+    for (const [action, shortcut] of Object.entries(shortcuts)) {
+        if (matchesShortcut(e, shortcut)) {
+            e.preventDefault();
+            
+            switch (action) {
+                case 'preview':
+                    viewMode = 'both';
+                    updateView();
+                    return;
+                case 'toggle-view':
+                    if (viewMode === 'both' || onlyTarget === 'preview') {
+                        onlyTarget = 'editor';
+                    } else {
+                        onlyTarget = 'preview';
+                    }
+                    viewMode = 'only';
+                    updateView();
+                    return;
+                case 'open-main':
+                    ipcRenderer.send('open-main-window');
+                    return;
+                case 'new-note':
+                    ipcRenderer.send('create-new-note-nearby');
+                    return;
+                case 'bold':
+                    surround('**');
+                    return;
+                case 'italic':
+                    surround('*');
+                    return;
+                case 'inline-code':
+                    surround('`');
+                    return;
+                case 'code-block':
+                    surround('\n```\n', '\n```');
+                    return;
+                case 'quote':
+                    {
+                        const quote = selected
+                            ? selected
+                                .split('\n')
+                                .map(line => '> ' + line)
+                                .join('\n')
+                            : '> ';
+                        surround(quote);
+                    }
+                    return;
+                case 'heading':
+                    if (!e.shiftKey) {
+                        const heading = selected
+                            ? selected
+                                .split('\n')
+                                .map(line => '# ' + line)
+                                .join('\n')
+                            : '# ';
+                        editor.value = text.slice(0, start) + heading + text.slice(end);
+                        editor.selectionStart = start;
+                        editor.selectionEnd = start + heading.length;
+                        preview.innerHTML = renderMathInMarkdown(editor.value);
+                    }
+                    return;
+                case 'strikethrough':
+                    if (e.shiftKey) {
+                        surround('~~');
+                    }
+                    return;
+                case 'link':
+                    if (e.shiftKey) {
+                        const lines = selected ? selected.split('\n') : [''];
+                        const bullet = lines.map(line => `- ${line}`).join('\n');
+                        editor.value = text.slice(0, start) + bullet + text.slice(end);
+                        editor.selectionStart = start;
+                        editor.selectionEnd = start + bullet.length;
+                    } else {
+                        const link = selected ? `[${selected}](url)` : `[text](url)`;
+                        editor.value = text.slice(0, start) + link + text.slice(end);
+                        editor.selectionStart = start + 1;
+                        editor.selectionEnd = start + link.indexOf(']');
+                    }
+                    return;
+                case 'bullet-list':
+                    if (e.shiftKey) {
+                        const lines = selected ? selected.split('\n') : [''];
+                        const bullet = lines.map(line => `- ${line}`).join('\n');
+                        editor.value = text.slice(0, start) + bullet + text.slice(end);
+                        editor.selectionStart = start;
+                        editor.selectionEnd = start + bullet.length;
+                    }
+                    return;
+                case 'numbered-list':
+                    if (e.shiftKey) {
+                        const numbered = selected
+                            ? selected
+                                .split('\n')
+                                .map((line, i) => `${i + 1}. ${line}`)
+                                .join('\n')
+                            : '1. ';
+                        editor.value = text.slice(0, start) + numbered + text.slice(end);
+                        editor.selectionStart = start;
+                        editor.selectionEnd = start + numbered.length;
+                        preview.innerHTML = renderMathInMarkdown(editor.value);
+                    }
+                    return;
+            }
+        }
     }
-    if ((modifierKey) && e.key.toLowerCase() === 'n') {
-      e.preventDefault();
-      ipcRenderer.send('create-new-note-nearby');
-      return;
-    }
+
+    // Handle Tab key for indentation
     if (!editorIsFocused) return;
     if (e.key === 'Tab') {
-      e.preventDefault();
-      const start = editor.selectionStart;
-      const end = editor.selectionEnd;
-      const lines = editor.value.slice(start, end).split('\n');
-      let newText;
-      if (e.shiftKey) {
-        newText = lines
-          .map(line =>
-            line.startsWith('    ') ? line.slice(4) : line.startsWith('\t') ? line.slice(1) : line
-          )
-          .join('\n');
-      } else {
-        newText = lines.map(line => '    ' + line).join('\n');
-      }
-      const before = editor.value.slice(0, start);
-      const after = editor.value.slice(end);
-      editor.value = before + newText + after;
-      
-      // 커서 위치 조정
-      if (start === end) {
-        // 단일 커서인 경우
-        editor.selectionStart = editor.selectionEnd = start + 4;
-      } else {
-        // 여러 줄이 선택된 경우
-        editor.selectionStart = start;
-        editor.selectionEnd = start + newText.length;
-      }
-      
-      editor.dispatchEvent(new Event('input'));
-      return;
-    }
-    if (e.key === 'Enter') {
-      const text = editor.value;
-      const start = editor.selectionStart;
-      const end = editor.selectionEnd;
-      const before = text.slice(0, start);
-      const after = text.slice(end);
-      const lines = before.split('\n');
-      const currentLine = lines[lines.length - 1];
-      
-      // 글머리기호 연속 처리
-      const bulletMatch = currentLine.match(/^(\s*[-*+]\s)/);
-      const numberMatch = currentLine.match(/^(\s*\d+\.\s)/);
-      
-      if (bulletMatch || numberMatch) {
         e.preventDefault();
-        const bullet = bulletMatch ? bulletMatch[1] : numberMatch[1];
-        
-        // 현재 줄이 글머리기호만 있는 경우 (내용이 없는 경우)
-        if (currentLine.trim() === bullet.trim()) {
-          // 글머리기호를 제거하고 새 줄 추가
-          const newText = before.slice(0, -currentLine.length) + '\n' + after;
-          editor.value = newText;
-          editor.selectionStart = editor.selectionEnd = start - currentLine.length;
+        const start = editor.selectionStart;
+        const end = editor.selectionEnd;
+        const lines = editor.value.slice(start, end).split('\n');
+        let newText;
+        if (e.shiftKey) {
+            newText = lines
+                .map(line =>
+                    line.startsWith('    ') ? line.slice(4) : line.startsWith('\t') ? line.slice(1) : line
+                )
+                .join('\n');
         } else {
-          // 일반적인 경우: 다음 줄에 글머리기호 추가
-          let nextBullet = bullet;
-          if (numberMatch) {
-            // 숫자 목록인 경우 다음 숫자로 증가
-            const currentNumber = parseInt(numberMatch[1]);
-            const indent = numberMatch[1].match(/^(\s*)/)[0];
-            nextBullet = `${indent}${currentNumber + 1}. `;
-          }
-          const newText = before + '\n' + nextBullet + after;
-          editor.value = newText;
-          editor.selectionStart = editor.selectionEnd = start + nextBullet.length + 1;
+            newText = lines.map(line => '    ' + line).join('\n');
         }
-        preview.innerHTML = renderMathInMarkdown(editor.value);
+        const before = editor.value.slice(0, start);
+        const after = editor.value.slice(end);
+        editor.value = before + newText + after;
+        
+        // 커서 위치 조정
+        if (start === end) {
+            // 단일 커서인 경우
+            editor.selectionStart = editor.selectionEnd = start + 4;
+        } else {
+            // 여러 줄이 선택된 경우
+            editor.selectionStart = start;
+            editor.selectionEnd = start + newText.length;
+        }
+        
+        editor.dispatchEvent(new Event('input'));
         return;
-      }
     }
-    if (modifierKey) {
-      switch (e.key.toLowerCase()) {
-        case 'b':
-          e.preventDefault();
-          surround('**');
-          break;
-        case 'i':
-          e.preventDefault();
-          surround('*');
-          break;
-        case '`':
-          e.preventDefault();
-          surround('`');
-          break;
-        case 'k':
-          e.preventDefault();
-          surround('\n```\n', '\n```');
-          break;
-        case 'q':
-          e.preventDefault();
-          {
-            const quote = selected
-              ? selected
-                  .split('\n')
-                  .map(line => '> ' + line)
-                  .join('\n')
-              : '> ';
-            surround(quote);
-          }
-          break;
-        case 'h':
-          if (!e.shiftKey) {
+
+    // Handle Enter key for lists
+    if (e.key === 'Enter') {
+        const text = editor.value;
+        const start = editor.selectionStart;
+        const end = editor.selectionEnd;
+        const before = text.slice(0, start);
+        const after = text.slice(end);
+        const lines = before.split('\n');
+        const currentLine = lines[lines.length - 1];
+        
+        // 글머리기호 연속 처리
+        const bulletMatch = currentLine.match(/^(\s*[-*+]\s)/);
+        const numberMatch = currentLine.match(/^(\s*\d+\.\s)/);
+        
+        if (bulletMatch || numberMatch) {
             e.preventDefault();
-            const heading = selected
-              ? selected
-                  .split('\n')
-                  .map(line => '# ' + line)
-                  .join('\n')
-              : '# ';
-            editor.value = text.slice(0, start) + heading + text.slice(end);
-            editor.selectionStart = start;
-            editor.selectionEnd = start + heading.length;
+            const bullet = bulletMatch ? bulletMatch[1] : numberMatch[1];
+            
+            // 현재 줄이 글머리기호만 있는 경우 (내용이 없는 경우)
+            if (currentLine.trim() === bullet.trim()) {
+                // 글머리기호를 제거하고 새 줄 추가
+                const newText = before.slice(0, -currentLine.length) + '\n' + after;
+                editor.value = newText;
+                editor.selectionStart = editor.selectionEnd = start - currentLine.length;
+            } else {
+                // 일반적인 경우: 다음 줄에 글머리기호 추가
+                let nextBullet = bullet;
+                if (numberMatch) {
+                    // 숫자 목록인 경우 다음 숫자로 증가
+                    const currentNumber = parseInt(numberMatch[1]);
+                    const indent = numberMatch[1].match(/^(\s*)/)[0];
+                    nextBullet = `${indent}${currentNumber + 1}. `;
+                }
+                const newText = before + '\n' + nextBullet + after;
+                editor.value = newText;
+                editor.selectionStart = editor.selectionEnd = start + nextBullet.length + 1;
+            }
             preview.innerHTML = renderMathInMarkdown(editor.value);
-          }
-          break;
-        case 's':
-          if (e.shiftKey) {
-            e.preventDefault();
-            surround('~~');
-          }
-          break;
-        case 'l':
-          e.preventDefault();
-          if (e.shiftKey) {
-            const lines = selected ? selected.split('\n') : [''];
-            const bullet = lines.map(line => `- ${line}`).join('\n');
-            editor.value = text.slice(0, start) + bullet + text.slice(end);
-            editor.selectionStart = start;
-            editor.selectionEnd = start + bullet.length;
-          } else {
-            const link = selected ? `[${selected}](url)` : `[text](url)`;
-            editor.value = text.slice(0, start) + link + text.slice(end);
-            editor.selectionStart = start + 1;
-            editor.selectionEnd = start + link.indexOf(']');
-          }
-          break;
-        case 'o':
-          if (e.shiftKey) {
-            e.preventDefault();
-            const numbered = selected
-              ? selected
-                  .split('\n')
-                  .map((line, i) => `${i + 1}. ${line}`)
-                  .join('\n')
-              : '1. ';
-            editor.value = text.slice(0, start) + numbered + text.slice(end);
-            editor.selectionStart = start;
-            editor.selectionEnd = start + numbered.length;
-            preview.innerHTML = renderMathInMarkdown(editor.value);
-          }
-          break;
-        case 'c':
-          if (e.shiftKey) {
-            e.preventDefault();
-            const lines = selected ? selected.split('\n') : [''];
-            const toggled = lines
-              .map(line => {
-                if (/^- \[ \] /.test(line)) return line.replace('- [ ] ', '- [x] ');
-                if (/^- \[x\] /.test(line)) return line.replace('- [x] ', '');
-                return '- [ ] ' + line;
-              })
-              .join('\n');
-            editor.value = text.slice(0, start) + toggled + text.slice(end);
-            editor.selectionStart = start;
-            editor.selectionEnd = start + toggled.length;
-            preview.innerHTML = renderMathInMarkdown(editor.value);
-          }
-          break;
-      }
+            return;
+        }
     }
   });
 

@@ -95,7 +95,7 @@ function createNoteWindow(notePath, position = null, isNew = false) {
   // 초기 테마 설정
   win.webContents.once('did-finish-load', () => {
     if (store) { // Ensure 'store' is initialized before accessing it
-      win.webContents.send('set-initial-theme', store.get('theme'));
+      win.webContents.send('theme-changed', store.get('theme'));
     } else {
       console.warn("Store not initialized when setting initial theme for note window.");
     }
@@ -357,6 +357,40 @@ app.on('ready', async () => {
 
   ipcMain.handle('get-current-theme', () => {
     return store.get('theme');
+  });
+
+  // Set default shortcuts if not exists
+  if (!store.get('shortcuts')) {
+    store.set('shortcuts', {
+      'preview': { key: 'p', modifiers: ['ctrl'] },
+      'toggle-view': { key: 'o', modifiers: ['ctrl'] },
+      'open-main': { key: 'm', modifiers: ['ctrl'] },
+      'new-note': { key: 'n', modifiers: ['ctrl'] },
+      'bold': { key: 'b', modifiers: ['ctrl'] },
+      'italic': { key: 'i', modifiers: ['ctrl'] },
+      'inline-code': { key: '`', modifiers: ['ctrl'] },
+      'code-block': { key: 'k', modifiers: ['ctrl'] },
+      'quote': { key: 'q', modifiers: ['ctrl'] },
+      'heading': { key: 'h', modifiers: ['ctrl'] },
+      'strikethrough': { key: 's', modifiers: ['ctrl', 'shift'] },
+      'link': { key: 'l', modifiers: ['ctrl'] },
+      'bullet-list': { key: 'l', modifiers: ['ctrl', 'shift'] },
+      'numbered-list': { key: 'o', modifiers: ['ctrl', 'shift'] },
+      'focus-search': { key: 'f', modifiers: ['ctrl'] }
+    });
+  }
+
+  // Register IPC handlers for shortcuts
+  ipcMain.handle('get-shortcuts', () => {
+    return store.get('shortcuts');
+  });
+
+  ipcMain.on('save-shortcuts', (event, shortcuts) => {
+    store.set('shortcuts', shortcuts);
+    // Notify all windows about shortcut changes
+    BrowserWindow.getAllWindows().forEach(window => {
+      window.webContents.send('shortcuts-updated', shortcuts);
+    });
   });
 
   // Last session restore

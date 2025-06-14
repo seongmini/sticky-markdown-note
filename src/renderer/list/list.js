@@ -9,6 +9,7 @@ function applyTheme(theme) {
 
 let notesDir;
 let currentSearch = '';
+let shortcuts = {};
 
 function getNoteTitle(content) {
   const firstLine = content.split('\n')[0];
@@ -114,17 +115,46 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadNotes();
   });
 
-  document.addEventListener('keydown', e => {
+  // Load shortcuts
+  ipcRenderer.invoke('get-shortcuts').then(savedShortcuts => {
+    shortcuts = savedShortcuts;
+  });
+
+  // Listen for shortcut updates
+  ipcRenderer.on('shortcuts-updated', (event, newShortcuts) => {
+    shortcuts = newShortcuts;
+  });
+
+  // Helper function to check if a key combination matches a shortcut
+  function matchesShortcut(e, shortcut) {
     const isMac = process.platform === 'darwin';
     const modifierKey = isMac ? e.metaKey : e.ctrlKey;
+    
+    // Check modifiers
+    if (shortcut.modifiers.includes('ctrl') && !modifierKey) return false;
+    if (shortcut.modifiers.includes('shift') && !e.shiftKey) return false;
+    if (shortcut.modifiers.includes('alt') && !e.altKey) return false;
+    
+    // Check key
+    return e.key.toLowerCase() === shortcut.key;
+  }
 
-    if (modifierKey && e.key === 'n') {
-      e.preventDefault();
-      ipcRenderer.send('create-new-note');
-    }
-    if (modifierKey && e.key === 'f') {
-      e.preventDefault();
-      document.getElementById('search').focus();
+  // Replace the existing keydown event listener
+  document.addEventListener('keydown', e => {
+    // Check for custom shortcuts
+    for (const [action, shortcut] of Object.entries(shortcuts)) {
+      if (matchesShortcut(e, shortcut)) {
+        e.preventDefault();
+        
+        switch (action) {
+          case 'new-note':
+            ipcRenderer.send('create-new-note');
+            return;
+          case 'focus-search':
+            document.getElementById('search').focus();
+            return;
+        }
+      }
     }
   });
 }); 

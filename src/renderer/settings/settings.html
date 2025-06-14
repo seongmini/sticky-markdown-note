@@ -7,16 +7,142 @@
         <link rel="stylesheet" href="../../styles/settings.css">
     </head>
     <body>
-        <div id="titlebar">
+        <div id="toolbar">
             <span>Settings</span>
-            <div>
-                <button onclick="window.close()">✖</button>
-            </div>
+            <button id="close-button">✖</button>
         </div>
+        <div class="settings-container">
+            <h1>Settings</h1>
+            
+            <div class="settings-section">
+                <h2>Theme</h2>
+                <div class="setting-item">
+                    <label>Dark/Light Mode</label>
+                    <button id="theme-toggle">Toggle Dark/Light Mode</button>
+                </div>
+            </div>
 
-        <div class="settings-section">
-            <h2>Theme</h2>
-            <button id="theme-toggle">Toggle Dark/Light Mode</button>
+            <div class="settings-section">
+                <h2>Keyboard Shortcuts</h2>
+                <div class="shortcuts-container">
+                    <div class="shortcut-group">
+                        <h3>Note Editing</h3>
+                        <div class="shortcut-item">
+                            <label>Preview Mode</label>
+                            <div class="shortcut-input" data-shortcut="preview">
+                                <span class="current-shortcut">Ctrl/Cmd + P</span>
+                                <button class="edit-shortcut">Edit</button>
+                            </div>
+                        </div>
+                        <div class="shortcut-item">
+                            <label>Toggle Editor/Preview</label>
+                            <div class="shortcut-input" data-shortcut="toggle-view">
+                                <span class="current-shortcut">Ctrl/Cmd + O</span>
+                                <button class="edit-shortcut">Edit</button>
+                            </div>
+                        </div>
+                        <div class="shortcut-item">
+                            <label>Open List Window (from Note Window)</label>
+                            <div class="shortcut-input" data-shortcut="open-main">
+                                <span class="current-shortcut">Ctrl/Cmd + M</span>
+                                <button class="edit-shortcut">Edit</button>
+                            </div>
+                        </div>
+                        <div class="shortcut-item">
+                            <label>New Note (All Windows)</label>
+                            <div class="shortcut-input" data-shortcut="new-note">
+                                <span class="current-shortcut">Ctrl/Cmd + N</span>
+                                <button class="edit-shortcut">Edit</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="shortcut-group">
+                        <h3>Text Formatting</h3>
+                        <div class="shortcut-item">
+                            <label>Bold</label>
+                            <div class="shortcut-input" data-shortcut="bold">
+                                <span class="current-shortcut">Ctrl/Cmd + B</span>
+                                <button class="edit-shortcut">Edit</button>
+                            </div>
+                        </div>
+                        <div class="shortcut-item">
+                            <label>Italic</label>
+                            <div class="shortcut-input" data-shortcut="italic">
+                                <span class="current-shortcut">Ctrl/Cmd + I</span>
+                                <button class="edit-shortcut">Edit</button>
+                            </div>
+                        </div>
+                        <div class="shortcut-item">
+                            <label>Inline Code</label>
+                            <div class="shortcut-input" data-shortcut="inline-code">
+                                <span class="current-shortcut">Ctrl/Cmd + `</span>
+                                <button class="edit-shortcut">Edit</button>
+                            </div>
+                        </div>
+                        <div class="shortcut-item">
+                            <label>Code Block</label>
+                            <div class="shortcut-input" data-shortcut="code-block">
+                                <span class="current-shortcut">Ctrl/Cmd + K</span>
+                                <button class="edit-shortcut">Edit</button>
+                            </div>
+                        </div>
+                        <div class="shortcut-item">
+                            <label>Quote</label>
+                            <div class="shortcut-input" data-shortcut="quote">
+                                <span class="current-shortcut">Ctrl/Cmd + Q</span>
+                                <button class="edit-shortcut">Edit</button>
+                            </div>
+                        </div>
+                        <div class="shortcut-item">
+                            <label>Heading</label>
+                            <div class="shortcut-input" data-shortcut="heading">
+                                <span class="current-shortcut">Ctrl/Cmd + H</span>
+                                <button class="edit-shortcut">Edit</button>
+                            </div>
+                        </div>
+                        <div class="shortcut-item">
+                            <label>Strikethrough</label>
+                            <div class="shortcut-input" data-shortcut="strikethrough">
+                                <span class="current-shortcut">Ctrl/Cmd + Shift + S</span>
+                                <button class="edit-shortcut">Edit</button>
+                            </div>
+                        </div>
+                        <div class="shortcut-item">
+                            <label>Link</label>
+                            <div class="shortcut-input" data-shortcut="link">
+                                <span class="current-shortcut">Ctrl/Cmd + L</span>
+                                <button class="edit-shortcut">Edit</button>
+                            </div>
+                        </div>
+                        <div class="shortcut-item">
+                            <label>Bullet List</label>
+                            <div class="shortcut-input" data-shortcut="bullet-list">
+                                <span class="current-shortcut">Ctrl/Cmd + Shift + L</span>
+                                <button class="edit-shortcut">Edit</button>
+                            </div>
+                        </div>
+                        <div class="shortcut-item">
+                            <label>Numbered List</label>
+                            <div class="shortcut-input" data-shortcut="numbered-list">
+                                <span class="current-shortcut">Ctrl/Cmd + Shift + O</span>
+                                <button class="edit-shortcut">Edit</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="shortcut-group">
+                        <h3>List Window</h3>
+                        <div class="shortcut-item">
+                            <label>Focus Search</label>
+                            <div class="shortcut-input" data-shortcut="focus-search">
+                                <span class="current-shortcut">Ctrl/Cmd + F</span>
+                                <button class="edit-shortcut">Edit</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <script src="settings.js"></script>
