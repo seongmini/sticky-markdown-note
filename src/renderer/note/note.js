@@ -208,6 +208,46 @@ document.addEventListener('DOMContentLoaded', async () => {
       editor.dispatchEvent(new Event('input'));
       return;
     }
+    if (e.key === 'Enter') {
+      const text = editor.value;
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      const before = text.slice(0, start);
+      const after = text.slice(end);
+      const lines = before.split('\n');
+      const currentLine = lines[lines.length - 1];
+      
+      // 글머리기호 연속 처리
+      const bulletMatch = currentLine.match(/^(\s*[-*+]\s)/);
+      const numberMatch = currentLine.match(/^(\s*\d+\.\s)/);
+      
+      if (bulletMatch || numberMatch) {
+        e.preventDefault();
+        const bullet = bulletMatch ? bulletMatch[1] : numberMatch[1];
+        
+        // 현재 줄이 글머리기호만 있는 경우 (내용이 없는 경우)
+        if (currentLine.trim() === bullet.trim()) {
+          // 글머리기호를 제거하고 새 줄 추가
+          const newText = before.slice(0, -currentLine.length) + '\n' + after;
+          editor.value = newText;
+          editor.selectionStart = editor.selectionEnd = start - currentLine.length;
+        } else {
+          // 일반적인 경우: 다음 줄에 글머리기호 추가
+          let nextBullet = bullet;
+          if (numberMatch) {
+            // 숫자 목록인 경우 다음 숫자로 증가
+            const currentNumber = parseInt(numberMatch[1]);
+            const indent = numberMatch[1].match(/^(\s*)/)[1];
+            nextBullet = `${indent}${currentNumber + 1}. `;
+          }
+          const newText = before + '\n' + nextBullet + after;
+          editor.value = newText;
+          editor.selectionStart = editor.selectionEnd = start + nextBullet.length + 1;
+        }
+        preview.innerHTML = renderMathInMarkdown(editor.value);
+        return;
+      }
+    }
     if (modifierKey) {
       switch (e.key.toLowerCase()) {
         case 'b':
