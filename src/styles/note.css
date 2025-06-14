@@ -18,6 +18,9 @@ body {
     font-size: 16px;
     padding: 10px;
     resize: none;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
 }
 
 #preview {
@@ -25,7 +28,7 @@ body {
     overflow-y: auto;
     height: 100%;
     box-sizing: border-box;
-    background-color: var(--bg-color);
+    background-color: var(--background-color);
     color: var(--text-color);
 }
 
@@ -38,19 +41,10 @@ body {
 }
 
 #preview pre {
-    background-color: #f5f5f5;
+    background-color: var(--hover-color);
     padding: 1em;
     border-radius: 4px;
     overflow-x: auto;
-}
-
-/* 다크 테마 노트 전용 스타일 */
-.dark-theme #editor,
-.dark-theme #preview,
-.dark-theme textarea {
-    background: #1e1e1e;
-    color: #eee;
-    border-color: #444;
 }
 
 /* 뷰 모드 스타일 */
@@ -81,24 +75,14 @@ body.only-mode #preview {
 
 #preview th,
 #preview td {
-    border: 1px solid #ccc;
+    border: 1px solid var(--border-color);
     padding: 8px;
     text-align: left;
 }
 
 #preview th {
-    background-color: #f5f5f5;
+    background-color: var(--hover-color);
     font-weight: bold;
-}
-
-/* 다크 테마에서의 표 스타일 */
-.dark-theme #preview th,
-.dark-theme #preview td {
-    border-color: #444;
-}
-
-.dark-theme #preview th {
-    background-color: #2a2a2a;
 }
 
 /* 체크박스 스타일 */

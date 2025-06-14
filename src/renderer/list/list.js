@@ -1,7 +1,11 @@
-const { getInitialTheme, applyTheme, toggleTheme } = require('../../shared/theme');
 const { ipcRenderer } = require('electron');
 const fs = require('fs');
 const path = require('path');
+
+// Theme application function
+function applyTheme(theme) {
+    document.body.classList.toggle('dark-mode', theme === 'dark');
+}
 
 let notesDir;
 let currentSearch = '';
@@ -15,16 +19,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   const userDataPath = await ipcRenderer.invoke('get-user-data-path');
   notesDir = path.join(userDataPath, 'notes');
 
-  // 테마 적용
-  const theme = getInitialTheme();
-  applyTheme(theme);
+  // 초기 테마 설정
+  ipcRenderer.invoke('get-current-theme').then(theme => {
+      applyTheme(theme);
+  });
 
   const container = document.getElementById('notes');
   const addButton = document.getElementById('add');
   const searchInput = document.getElementById('search');
-  const themeToggleBtn = document.getElementById('theme-toggle');
+  const settingsButton = document.getElementById('settings-button'); // Get the new settings button
 
-  themeToggleBtn.addEventListener('click', toggleTheme);
+  settingsButton.addEventListener('click', () => { // Add event listener for settings button
+    ipcRenderer.send('open-settings-window');
+  });
+
+  // Listen for theme changes from the main process
+  ipcRenderer.on('theme-changed', (event, theme) => {
+    applyTheme(theme);
+  });
 
   function loadNotes() {
     container.innerHTML = '';

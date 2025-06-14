@@ -1,0 +1,68 @@
+/* src/styles/settings.css */
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#titlebar {
+    -webkit-app-region: drag;
+    background-color: var(--titlebar-background-color);
+    color: var(--titlebar-text-color);
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+#titlebar span {
+    font-weight: bold;
+}
+
+#titlebar button {
+    -webkit-app-region: no-drag;
+    background: none;
+    border: none;
+    color: var(--titlebar-text-color);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+#titlebar button:hover {
+    background-color: var(--hover-color);
+}
+
+.settings-section {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.settings-section h2 {
+    margin-top: 0;
+    color: var(--heading-color);
+}
+
+.settings-section button {
+    background-color: var(--button-background-color);
+    color: var(--button-text-color);
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.settings-section button:hover {
+    background-color: var(--button-hover-background-color);
+} 

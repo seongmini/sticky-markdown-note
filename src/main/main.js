@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const { execSync } = require('child_process');
 const { autoUpdater } = require('electron-updater');
-const { dialog } = require('electron');
+const { dialog, nativeTheme } = require('electron');
 
 app.setAppUserModelId('com.hsmin.stickymarkdownnote');
 
@@ -31,6 +31,9 @@ function writeSessionNow() {
   }
 }
 
+let Store; // Declare Store as a variable globally
+let store; // Declare store instance globally
+
 let mainWindow;
 
 function createMainWindow() {
@@ -45,6 +48,11 @@ function createMainWindow() {
   });
 
   mainWindow.loadFile('src/renderer/list/list.html');
+
+  // 설정 버튼 클릭 이벤트 핸들러
+  ipcMain.on('open-settings-window', () => {
+    createSettingsWindow();
+  });
 }
 
 function createNoteWindow(notePath, position = null, isNew = false) {
@@ -84,7 +92,15 @@ function createNoteWindow(notePath, position = null, isNew = false) {
 
   win.loadFile('src/renderer/note/note.html');
 
-  // 노트 경로를 기억시킴
+  // 초기 테마 설정
+  win.webContents.once('did-finish-load', () => {
+    if (store) { // Ensure 'store' is initialized before accessing it
+      win.webContents.send('set-initial-theme', store.get('theme'));
+    } else {
+      console.warn("Store not initialized when setting initial theme for note window.");
+    }
+  });
+
   win.notePath = notePath;
   win.isNewNote = isNew;
 
@@ -313,8 +329,35 @@ ipcMain.handle('get-app-path', () => {
   return app.getAppPath();
 });
 
-app.on('ready', () => {
+app.on('ready', async () => {
   createMainWindow();
+
+  // Dynamically import electron-store and initialize store instance here
+  Store = (await import('electron-store')).default;
+  store = new Store();
+
+  // Initial theme setting (system theme or stored setting)
+  if (store.get('theme') === undefined) {
+    store.set('theme', nativeTheme.shouldUseDarkColors ? 'dark' : 'light');
+  }
+
+  // IPC handlers for theme
+  ipcMain.handle('toggle-theme', () => {
+    const currentTheme = store.get('theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    store.set('theme', newTheme);
+
+    // Notify all open windows about theme change
+    BrowserWindow.getAllWindows().forEach(window => {
+      window.webContents.send('theme-changed', newTheme);
+    });
+
+    return newTheme;
+  });
+
+  ipcMain.handle('get-current-theme', () => {
+    return store.get('theme');
+  });
 
   // Last session restore
   try {
@@ -381,3 +424,22 @@ app.on('ready', () => {
 });
 
 app.on('before-quit', writeSessionNow);
+
+// 설정 창 생성 함수
+function createSettingsWindow() {
+  let settingsWindow = new BrowserWindow({
+    width: 600,
+    height: 400,
+    frame: false,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+    },
+  });
+
+  settingsWindow.loadFile('src/renderer/settings/settings.html');
+
+  settingsWindow.on('closed', () => {
+    settingsWindow = null;
+  });
+}

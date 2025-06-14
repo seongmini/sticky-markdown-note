@@ -1,12 +1,12 @@
 /* 노트 리스트 스타일 */
 .note {
     padding: 10px;
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid var(--border-color);
     cursor: pointer;
 }
 
 .note:hover {
-    background: #f0f0f0;
+    background: var(--hover-color);
 }
 
 .title {
@@ -15,14 +15,14 @@
 
 .time {
     font-size: 12px;
-    color: gray;
+    color: var(--text-color);
 }
 
 /* 툴바 스타일 */
 #toolbar {
     padding: 10px;
-    border-bottom: 1px solid #ccc;
-    background: #f9f9f9;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--background-color);
     display: flex;
     gap: 10px;
 }
@@ -31,18 +31,36 @@
     font-size: 14px;
     padding: 5px 10px;
     cursor: pointer;
+    background-color: var(--button-background-color);
+    color: var(--button-text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+#add:hover {
+    background-color: var(--button-hover-background-color);
 }
 
 #search {
     flex: 1;
     font-size: 14px;
     padding: 5px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
 }
 
 .delete-btn {
     padding: 4px 10px;
     border-radius: 4px;
     font-size: 13px;
+    background-color: var(--button-background-color);
+    color: var(--button-text-color);
+    border: 1px solid var(--border-color);
+}
+
+.delete-btn:hover {
+    background-color: var(--button-hover-background-color);
 }
 
 /* 다크 테마 리스트 전용 스타일 */

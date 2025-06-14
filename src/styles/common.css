@@ -1,14 +1,45 @@
+/* src/styles/common.css */
+
+/* 기본 변수 (라이트 모드 기본값) */
+body {
+    --background-color: #ffffff;
+    --text-color: #333333;
+    --titlebar-background-color: #f8f8f8;
+    --titlebar-text-color: #333333;
+    --border-color: #e0e0e0;
+    --hover-color: #e6e6e6;
+    --button-background-color: #e0e0e0; /* Neutral light grey */
+    --button-text-color: #333333;
+    --button-hover-background-color: #d0d0d0;
+}
+
+/* 다크 모드 변수 오버라이드 */
+body.dark-mode {
+    --background-color: #282c34;
+    --text-color: #abb2bf;
+    --titlebar-background-color: #21252b;
+    --titlebar-text-color: #abb2bf;
+    --border-color: #3e4452;
+    --hover-color: #3e4452;
+    --button-background-color: #555555; /* Neutral dark grey */
+    --button-text-color: #ffffff;
+    --button-hover-background-color: #666666;
+}
+
 /* 기본 스타일 */
 body {
     font-family: sans-serif;
     margin: 0;
     padding: 0;
+    background-color: var(--background-color);
+    color: var(--text-color);
 }
 
 /* 타이틀바 스타일 */
 #titlebar {
     height: 30px;
-    background-color: #ddd;
+    background-color: var(--titlebar-background-color);
+    color: var(--titlebar-text-color);
     position: sticky;
     top: 0;
     z-index: 999;
@@ -19,6 +50,7 @@ body {
     -webkit-app-region: drag;
     user-select: none;
     font-weight: bold;
+    border-bottom: 1px solid var(--border-color);
 }
 
 #titlebar button {
@@ -27,64 +59,44 @@ body {
     font-size: 16px;
     cursor: pointer;
     -webkit-app-region: no-drag;
+    color: var(--titlebar-text-color);
+}
+
+#titlebar button:hover {
+    background-color: var(--hover-color);
 }
 
 #titlebar .title-btn {
-    background: white;
+    background: var(--button-background-color);
+    color: var(--button-text-color);
+    border: 1px solid var(--border-color);
     padding: 2px 10px;
     font-size: 13px;
     cursor: pointer;
     margin-left: 8px;
     -webkit-app-region: no-drag;
-}
-
-/* 테마 스타일 */
-body.light-theme {
-    background: #fff;
-    color: #000;
-}
-
-body.dark-theme {
-    background: #1e1e1e;
-    color: #eee;
-}
-
-/* 다크 테마 공통 스타일 */
-.dark-theme #titlebar {
-    background: #333;
-    color: #ddd;
-}
-
-.dark-theme input,
-.dark-theme button,
-.dark-theme textarea,
-.dark-theme select {
-    background-color: #2a2a2a;
-    color: #eee;
-    border: 1px solid #666;
-}
-
-.dark-theme input::placeholder,
-.dark-theme textarea::placeholder {
-    color: #999;
-}
-
-.dark-theme button:hover {
-    background-color: #444;
-}
-
-.dark-theme .title-btn {
-    background-color: #2a2a2a !important;
-    color: #eee !important;
-    border: 1px solid #666 !important;
-    padding: 2px 10px;
-    font-size: 13px;
     border-radius: 4px;
-    opacity: 1 !important;
-    cursor: default;
-    -webkit-app-region: no-drag;
+    opacity: 1 !important; /* Ensure opacity is not overridden */
 }
 
-.dark-theme .title-btn:hover {
-    background-color: #444;
-} 
+#titlebar .title-btn:hover {
+    background-color: var(--button-hover-background-color);
+}
+
+input,
+button,
+textarea,
+select {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--text-color);
+}
+
+button:hover {
+    background-color: var(--hover-color);
+}

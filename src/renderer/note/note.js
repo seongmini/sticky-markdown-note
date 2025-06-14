@@ -4,8 +4,12 @@ const { marked } = require('marked');
 const katex = require('katex');
 const fs = require('fs');
 const path = require('path');
-const { getInitialTheme, applyTheme } = require('../../shared/theme');
 const CheckboxManager = require('./checkbox');
+
+// Theme application function
+function applyTheme(theme) {
+    document.body.classList.toggle('dark-mode', theme === 'dark');
+}
 
 const defaultFontSize = parseInt(process.env.FONT_SIZE_DEFAULT) || 16;
 const fontSizeMin = parseInt(process.env.FONT_SIZE_MIN) || 8;
@@ -285,8 +289,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const viewToggleBtn = document.getElementById('view-toggle');
   const onlyToggleBtn = document.getElementById('only-toggle');
   const newNoteBtn = document.getElementById('new-note');
-
-  applyTheme(getInitialTheme());
 
   let viewMode = 'only';
   let onlyTarget = 'preview';
@@ -632,4 +634,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   // 이미지 붙여넣기 이벤트 리스너 추가
   editor.addEventListener('paste', handleImagePaste);
+
+  // 초기 테마 설정
+  ipcRenderer.on('set-initial-theme', (event, theme) => {
+    applyTheme(theme);
+  });
+
+  // 테마 변경 이벤트 수신
+  ipcRenderer.on('theme-changed', (event, theme) => {
+    applyTheme(theme);
+  });
 });
