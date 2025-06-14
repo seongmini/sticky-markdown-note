@@ -194,8 +194,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       const before = editor.value.slice(0, start);
       const after = editor.value.slice(end);
       editor.value = before + newText + after;
-      editor.selectionStart = start;
-      editor.selectionEnd = start + newText.length;
+      
+      // 커서 위치 조정
+      if (start === end) {
+        // 단일 커서인 경우
+        editor.selectionStart = editor.selectionEnd = start + 4;
+      } else {
+        // 여러 줄이 선택된 경우
+        editor.selectionStart = start;
+        editor.selectionEnd = start + newText.length;
+      }
+      
       editor.dispatchEvent(new Event('input'));
       return;
     }
@@ -312,6 +321,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.addEventListener(
     'wheel',
     e => {
+      const isMac = process.platform === 'darwin';
+      const modifierKey = isMac ? e.metaKey : e.ctrlKey;
+      
       if (!modifierKey) return;
       e.preventDefault();
       currentFontSize += e.deltaY < 0 ? 1 : -1;

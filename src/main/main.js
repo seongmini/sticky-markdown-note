@@ -100,6 +100,18 @@ function createNoteWindow(notePath, position = null, isNew = false) {
     saveWindowState(fullPath, bounds);
   });
 
+  win.on('moved', () => {
+    // 창이 이동될 때마다 저장
+    const bounds = win.getBounds();
+    saveWindowState(fullPath, bounds);
+  });
+
+  win.on('resized', () => {
+    // 창 크기가 변경될 때마다 저장
+    const bounds = win.getBounds();
+    saveWindowState(fullPath, bounds);
+  });
+
   win.on('closed', () => {
     delete openNoteWindows[fullPath];
     writeSessionNow(); // 창이 사라졌으니 다시 저장장

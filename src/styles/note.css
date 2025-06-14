@@ -55,4 +55,33 @@ body.only-mode #preview {
     flex: 1;
     height: auto;
     display: block;
+}
+
+/* 마크다운 표 스타일 */
+#preview table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+}
+
+#preview th,
+#preview td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: left;
+}
+
+#preview th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+}
+
+/* 다크 테마에서의 표 스타일 */
+.dark-theme #preview th,
+.dark-theme #preview td {
+    border-color: #444;
+}
+
+.dark-theme #preview th {
+    background-color: #2a2a2a;
 } 
