@@ -17,6 +17,7 @@ body {
     box-sizing: border-box;
     font-size: 16px;
     padding: 10px;
+    padding-top: 40px;
     resize: none;
     background-color: var(--bg-color);
     color: var(--text-color);
@@ -25,6 +26,7 @@ body {
 
 #preview {
     padding: 20px;
+    padding-top: 30px;
     overflow-y: auto;
     height: 100%;
     box-sizing: border-box;
@@ -145,4 +147,20 @@ body.only-mode #preview {
 .checkbox-text {
   user-select: text;
   cursor: text;
+}
+
+/* Titlebar specific styles for note window */
+#titlebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 99;
+  background-color: var(--bg-color);
+  display: none; /* Start hidden */
+}
+
+/* Class to make titlebar visible when focused */
+#titlebar.titlebar-visible {
+  display: flex;
 } 

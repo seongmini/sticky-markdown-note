@@ -85,6 +85,7 @@ function createNoteWindow(notePath, position = null, isNew = false) {
     x: position?.x ?? savedBounds?.x,
     y: position?.y ?? savedBounds?.y,
     frame: false,
+    show: false, // Start hidden
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -93,13 +94,17 @@ function createNoteWindow(notePath, position = null, isNew = false) {
 
   win.loadFile('src/renderer/note/note.html');
 
-  // Set initial theme
+  // Set initial theme and show window when ready
   win.webContents.once('did-finish-load', () => {
     if (store) { // Ensure 'store' is initialized before accessing it
       win.webContents.send('theme-changed', store.get('theme'));
     } else {
       console.warn("Store not initialized when setting initial theme for note window.");
     }
+    
+    // Show window and focus it
+    win.show();
+    win.focus();
   });
 
   win.notePath = notePath;
