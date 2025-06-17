@@ -509,29 +509,80 @@ document.addEventListener('DOMContentLoaded', async () => {
                     break;
                 case 'bold':
                     if (editorIsFocused) {
-                        const newText = text.slice(0, start) + '**' + selected + '**' + text.slice(end);
-                        editor.value = newText;
-                        preview.innerHTML = renderMathInMarkdown(newText);
-                        editor.focus();
-                        editor.selectionStart = editor.selectionEnd = start + 2;
+                        const text = editor.value;
+                        const start = editor.selectionStart;
+                        const end = editor.selectionEnd;
+                        const selected = text.slice(start, end);
+                        
+                        // Check if we're inside a bold text
+                        const beforeText = text.slice(0, start);
+                        const afterText = text.slice(end);
+                        const beforeBold = beforeText.lastIndexOf('**');
+                        const afterBold = afterText.indexOf('**');
+                        
+                        if (beforeBold !== -1 && afterBold !== -1) {
+                            // We're inside a bold text, move cursor after the closing **
+                            editor.selectionStart = editor.selectionEnd = end + afterBold + 2;
+                        } else {
+                            // Start new bold text
+                            const newText = text.slice(0, start) + '**' + selected + '**' + text.slice(end);
+                            editor.value = newText;
+                            preview.innerHTML = renderMathInMarkdown(newText);
+                            editor.focus();
+                            editor.selectionStart = editor.selectionEnd = start + 2;
+                        }
                     }
                     break;
                 case 'italic':
                     if (editorIsFocused) {
-                        const newText = text.slice(0, start) + '*' + selected + '*' + text.slice(end);
-                        editor.value = newText;
-                        preview.innerHTML = renderMathInMarkdown(newText);
-                        editor.focus();
-                        editor.selectionStart = editor.selectionEnd = start + 1;
+                        const text = editor.value;
+                        const start = editor.selectionStart;
+                        const end = editor.selectionEnd;
+                        const selected = text.slice(start, end);
+                        
+                        // Check if we're inside italic text
+                        const beforeText = text.slice(0, start);
+                        const afterText = text.slice(end);
+                        const beforeItalic = beforeText.lastIndexOf('*');
+                        const afterItalic = afterText.indexOf('*');
+                        
+                        if (beforeItalic !== -1 && afterItalic !== -1) {
+                            // We're inside italic text, move cursor after the closing *
+                            editor.selectionStart = editor.selectionEnd = end + afterItalic + 1;
+                        } else {
+                            // Start new italic text
+                            const newText = text.slice(0, start) + '*' + selected + '*' + text.slice(end);
+                            editor.value = newText;
+                            preview.innerHTML = renderMathInMarkdown(newText);
+                            editor.focus();
+                            editor.selectionStart = editor.selectionEnd = start + 1;
+                        }
                     }
                     break;
                 case 'inline-code':
                     if (editorIsFocused) {
-                        const newText = text.slice(0, start) + '`' + selected + '`' + text.slice(end);
-                        editor.value = newText;
-                        preview.innerHTML = renderMathInMarkdown(newText);
-                        editor.focus();
-                        editor.selectionStart = editor.selectionEnd = start + 1;
+                        const text = editor.value;
+                        const start = editor.selectionStart;
+                        const end = editor.selectionEnd;
+                        const selected = text.slice(start, end);
+                        
+                        // Check if we're inside inline code
+                        const beforeText = text.slice(0, start);
+                        const afterText = text.slice(end);
+                        const beforeCode = beforeText.lastIndexOf('`');
+                        const afterCode = afterText.indexOf('`');
+                        
+                        if (beforeCode !== -1 && afterCode !== -1) {
+                            // We're inside inline code, move cursor after the closing `
+                            editor.selectionStart = editor.selectionEnd = end + afterCode + 1;
+                        } else {
+                            // Start new inline code
+                            const newText = text.slice(0, start) + '`' + selected + '`' + text.slice(end);
+                            editor.value = newText;
+                            preview.innerHTML = renderMathInMarkdown(newText);
+                            editor.focus();
+                            editor.selectionStart = editor.selectionEnd = start + 1;
+                        }
                     }
                     break;
                 case 'code-block':
@@ -575,11 +626,28 @@ document.addEventListener('DOMContentLoaded', async () => {
                     break;
                 case 'strikethrough':
                     if (editorIsFocused && e.shiftKey) {
-                        const newText = text.slice(0, start) + '~~' + selected + '~~' + text.slice(end);
-                        editor.value = newText;
-                        preview.innerHTML = renderMathInMarkdown(newText);
-                        editor.focus();
-                        editor.selectionStart = editor.selectionEnd = start + 2;
+                        const text = editor.value;
+                        const start = editor.selectionStart;
+                        const end = editor.selectionEnd;
+                        const selected = text.slice(start, end);
+                        
+                        // Check if we're inside strikethrough text
+                        const beforeText = text.slice(0, start);
+                        const afterText = text.slice(end);
+                        const beforeStrike = beforeText.lastIndexOf('~~');
+                        const afterStrike = afterText.indexOf('~~');
+                        
+                        if (beforeStrike !== -1 && afterStrike !== -1) {
+                            // We're inside strikethrough text, move cursor after the closing ~~
+                            editor.selectionStart = editor.selectionEnd = end + afterStrike + 2;
+                        } else {
+                            // Start new strikethrough text
+                            const newText = text.slice(0, start) + '~~' + selected + '~~' + text.slice(end);
+                            editor.value = newText;
+                            preview.innerHTML = renderMathInMarkdown(newText);
+                            editor.focus();
+                            editor.selectionStart = editor.selectionEnd = start + 2;
+                        }
                     }
                     break;
             }
