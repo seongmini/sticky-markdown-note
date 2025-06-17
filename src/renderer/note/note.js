@@ -285,15 +285,25 @@ function surround(before, after = before) {
   const start = editor.selectionStart;
   const end = editor.selectionEnd;
   const selected = text.slice(start, end);
+  
+  // Insert text at cursor position
   const newText = text.slice(0, start) + before + selected + after + text.slice(end);
   editor.value = newText;
-  if (start === end) {
-    editor.selectionStart = editor.selectionEnd = start + before.length;
-  } else {
-    editor.selectionStart = start;
-    editor.selectionEnd = end + before.length + after.length;
-  }
+  
+  // Update preview
   preview.innerHTML = renderMathInMarkdown(editor.value);
+  
+  // Focus editor and set cursor position
+  editor.focus();
+  const newPosition = start + before.length;
+  editor.selectionStart = newPosition;
+  editor.selectionEnd = newPosition;
+  
+  // Force cursor position update
+  setTimeout(() => {
+    editor.selectionStart = newPosition;
+    editor.selectionEnd = newPosition;
+  }, 0);
 }
 
 // Loading indicator control functions
@@ -471,13 +481,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Check for custom shortcuts
     for (const [action, shortcut] of Object.entries(shortcuts)) {
         if (matchesShortcut(e, shortcut)) {
+            // Stop all event propagation
             e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
             
+            // Execute the action
             switch (action) {
                 case 'preview':
                     viewMode = 'both';
                     updateView();
-                    return;
+                    break;
                 case 'toggle-view':
                     if (viewMode === 'both' || onlyTarget === 'preview') {
                         onlyTarget = 'editor';
@@ -486,93 +500,90 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                     viewMode = 'only';
                     updateView();
-                    return;
+                    break;
                 case 'open-main':
                     ipcRenderer.send('open-main-window');
-                    return;
+                    break;
                 case 'new-note':
                     ipcRenderer.send('create-new-note-nearby');
-                    return;
+                    break;
                 case 'bold':
-                    surround('**');
-                    return;
+                    if (editorIsFocused) {
+                        const newText = text.slice(0, start) + '**' + selected + '**' + text.slice(end);
+                        editor.value = newText;
+                        preview.innerHTML = renderMathInMarkdown(newText);
+                        editor.focus();
+                        editor.selectionStart = editor.selectionEnd = start + 2;
+                    }
+                    break;
                 case 'italic':
-                    surround('*');
-                    return;
+                    if (editorIsFocused) {
+                        const newText = text.slice(0, start) + '*' + selected + '*' + text.slice(end);
+                        editor.value = newText;
+                        preview.innerHTML = renderMathInMarkdown(newText);
+                        editor.focus();
+                        editor.selectionStart = editor.selectionEnd = start + 1;
+                    }
+                    break;
                 case 'inline-code':
-                    surround('`');
-                    return;
+                    if (editorIsFocused) {
+                        const newText = text.slice(0, start) + '`' + selected + '`' + text.slice(end);
+                        editor.value = newText;
+                        preview.innerHTML = renderMathInMarkdown(newText);
+                        editor.focus();
+                        editor.selectionStart = editor.selectionEnd = start + 1;
+                    }
+                    break;
                 case 'code-block':
-                    surround('\n```\n', '\n```');
-                    return;
+                    if (editorIsFocused) {
+                        const newText = text.slice(0, start) + '\n```\n' + selected + '\n```' + text.slice(end);
+                        editor.value = newText;
+                        preview.innerHTML = renderMathInMarkdown(newText);
+                        editor.focus();
+                        editor.selectionStart = editor.selectionEnd = start + 5;
+                    }
+                    break;
                 case 'quote':
-                    {
+                    if (editorIsFocused) {
                         const quote = selected
                             ? selected
                                 .split('\n')
                                 .map(line => '> ' + line)
                                 .join('\n')
                             : '> ';
-                        surround(quote);
+                        const newText = text.slice(0, start) + quote + text.slice(end);
+                        editor.value = newText;
+                        preview.innerHTML = renderMathInMarkdown(newText);
+                        editor.focus();
+                        editor.selectionStart = editor.selectionEnd = start + quote.length;
                     }
-                    return;
+                    break;
                 case 'heading':
-                    if (!e.shiftKey) {
+                    if (editorIsFocused && !e.shiftKey) {
                         const heading = selected
                             ? selected
                                 .split('\n')
                                 .map(line => '# ' + line)
                                 .join('\n')
                             : '# ';
-                        editor.value = text.slice(0, start) + heading + text.slice(end);
-                        editor.selectionStart = start;
-                        editor.selectionEnd = start + heading.length;
-                        preview.innerHTML = renderMathInMarkdown(editor.value);
+                        const newText = text.slice(0, start) + heading + text.slice(end);
+                        editor.value = newText;
+                        preview.innerHTML = renderMathInMarkdown(newText);
+                        editor.focus();
+                        editor.selectionStart = editor.selectionEnd = start + heading.length;
                     }
-                    return;
+                    break;
                 case 'strikethrough':
-                    if (e.shiftKey) {
-                        surround('~~');
+                    if (editorIsFocused && e.shiftKey) {
+                        const newText = text.slice(0, start) + '~~' + selected + '~~' + text.slice(end);
+                        editor.value = newText;
+                        preview.innerHTML = renderMathInMarkdown(newText);
+                        editor.focus();
+                        editor.selectionStart = editor.selectionEnd = start + 2;
                     }
-                    return;
-                case 'link':
-                    if (e.shiftKey) {
-                        const lines = selected ? selected.split('\n') : [''];
-                        const bullet = lines.map(line => `- ${line}`).join('\n');
-                        editor.value = text.slice(0, start) + bullet + text.slice(end);
-                        editor.selectionStart = start;
-                        editor.selectionEnd = start + bullet.length;
-                    } else {
-                        const link = selected ? `[${selected}](url)` : `[text](url)`;
-                        editor.value = text.slice(0, start) + link + text.slice(end);
-                        editor.selectionStart = start + 1;
-                        editor.selectionEnd = start + link.indexOf(']');
-                    }
-                    return;
-                case 'bullet-list':
-                    if (e.shiftKey) {
-                        const lines = selected ? selected.split('\n') : [''];
-                        const bullet = lines.map(line => `- ${line}`).join('\n');
-                        editor.value = text.slice(0, start) + bullet + text.slice(end);
-                        editor.selectionStart = start;
-                        editor.selectionEnd = start + bullet.length;
-                    }
-                    return;
-                case 'numbered-list':
-                    if (e.shiftKey) {
-                        const numbered = selected
-                            ? selected
-                                .split('\n')
-                                .map((line, i) => `${i + 1}. ${line}`)
-                                .join('\n')
-                            : '1. ';
-                        editor.value = text.slice(0, start) + numbered + text.slice(end);
-                        editor.selectionStart = start;
-                        editor.selectionEnd = start + numbered.length;
-                        preview.innerHTML = renderMathInMarkdown(editor.value);
-                    }
-                    return;
+                    break;
             }
+            return;
         }
     }
 
@@ -619,8 +630,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                     })
                     .join('\n');
                 editor.value = before + newText + after;
-                editor.selectionStart = start;
-                editor.selectionEnd = start + newText.length;
+                if (start === end) {
+                    editor.selectionStart = editor.selectionEnd = start - 4;
+                } else {
+                    editor.selectionStart = start;
+                    editor.selectionEnd = start + newText.length;
+                }
             }
         } else {
             // Indent
@@ -636,8 +651,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const lines = text.slice(start, end).split('\n');
                 newText = lines.map(line => '    ' + line).join('\n');
                 editor.value = before + newText + after;
-                editor.selectionStart = start;
-                editor.selectionEnd = start + newText.length;
+                if (start === end) {
+                    editor.selectionStart = editor.selectionEnd = start + 4;
+                } else {
+                    editor.selectionStart = start;
+                    editor.selectionEnd = start + newText.length;
+                }
             }
         }
         
