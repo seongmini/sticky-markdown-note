@@ -27,7 +27,7 @@ class CheckboxManager {
 
     // Find the line of the changed checkbox
     for (let i = 0; i < lines.length; i++) {
-      if (/^\s*- \[[ x]\]/.test(lines[i])) {
+      if (/^\s*[-+*] \[[ x]\]/.test(lines[i]) || /^\s*\d+\. \[[ x]\]/.test(lines[i])) {
         if (found === idx) {
           checkboxLineIdx = i;
           break;
@@ -39,9 +39,10 @@ class CheckboxManager {
 
     // Update checkbox state
     const indent = lines[checkboxLineIdx].match(/^\s*/)[0];
+    const bullet = lines[checkboxLineIdx].match(/^\s*[-+*]|\d+\./)[0];
     const newLine = lines[checkboxLineIdx].replace(
-      /^\s*- \[[ x]\]/,
-      `${indent}- [${checkbox.checked ? 'x' : ' '}]`
+      /^\s*[-+*] \[[ x]\]|^\s*\d+\. \[[ x]\]/,
+      `${indent}${bullet} [${checkbox.checked ? 'x' : ' '}]`
     );
     lines[checkboxLineIdx] = newLine;
 
@@ -50,10 +51,6 @@ class CheckboxManager {
     
     // Manually trigger the editor's input event to update the preview.
     editor.dispatchEvent(new Event('input'));
-
-    // Partial update: update only the checkbox element
-    // const checkboxElement = checkboxes[idx];
-    // checkboxElement.checked = checkbox.checked;
 
     return lines.join('\n');
   }

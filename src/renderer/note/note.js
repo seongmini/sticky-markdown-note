@@ -677,14 +677,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Handle consecutive bullet points
         const bulletMatch = currentLine.match(/^(\s*)([-*+]\s)/);
         const numberMatch = currentLine.match(/^(\s*)(\d+\.\s)/);
+        const checkboxMatch = currentLine.match(/^(\s*)([-*+]|\d+\.)\s\[[ x]\]\s/);
         
-        if (bulletMatch || numberMatch) {
+        if (bulletMatch || numberMatch || checkboxMatch) {
             e.preventDefault();
-            const match = bulletMatch || numberMatch;
+            const match = bulletMatch || numberMatch || checkboxMatch;
             const [, indent, bullet] = match;
             
             // If current line only contains a bullet point (no content)
-            if (currentLine.trim() === bullet.trim()) {
+            if (currentLine.trim() === bullet.trim() || (checkboxMatch && currentLine.trim() === bullet.trim() + '[ ]')) {
                 // If bullet point is indented, unindent it
                 if (indent.length >= 4) {
                     const newIndent = indent.slice(4);
@@ -707,6 +708,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 } else {
                     nextBullet = `${indent}${bullet}`;
                 }
+
+                // If current line has a checkbox, add checkbox to next line
+                if (checkboxMatch) {
+                    nextBullet += '[ ] ';
+                } else {
+                    nextBullet += ' ';
+                }
+
                 const newText = before + '\n' + nextBullet + after;
                 editor.value = newText;
                 editor.selectionStart = editor.selectionEnd = start + nextBullet.length + 1;
