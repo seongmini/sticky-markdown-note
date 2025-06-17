@@ -675,27 +675,37 @@ document.addEventListener('DOMContentLoaded', async () => {
         const currentLine = lines[lines.length - 1];
         
         // Handle consecutive bullet points
-        const bulletMatch = currentLine.match(/^(\s*[-*+]\s)/);
-        const numberMatch = currentLine.match(/^(\s*\d+\.\s)/);
+        const bulletMatch = currentLine.match(/^(\s*)([-*+]\s)/);
+        const numberMatch = currentLine.match(/^(\s*)(\d+\.\s)/);
         
         if (bulletMatch || numberMatch) {
             e.preventDefault();
-            const bullet = bulletMatch ? bulletMatch[1] : numberMatch[1];
+            const match = bulletMatch || numberMatch;
+            const [, indent, bullet] = match;
             
             // If current line only contains a bullet point (no content)
             if (currentLine.trim() === bullet.trim()) {
-                // Remove bullet point and add new line
-                const newText = before.slice(0, -currentLine.length) + '\n' + after;
-                editor.value = newText;
-                editor.selectionStart = editor.selectionEnd = start - currentLine.length;
+                // If bullet point is indented, unindent it
+                if (indent.length >= 4) {
+                    const newIndent = indent.slice(4);
+                    const newText = before.slice(0, -currentLine.length) + newIndent + bullet + '\n' + after;
+                    editor.value = newText;
+                    editor.selectionStart = editor.selectionEnd = start - 4;
+                } else {
+                    // Remove bullet point and add new line
+                    const newText = before.slice(0, -currentLine.length) + '\n' + after;
+                    editor.value = newText;
+                    editor.selectionStart = editor.selectionEnd = start - currentLine.length;
+                }
             } else {
                 // Normal case: add bullet point to next line
                 let nextBullet = bullet;
                 if (numberMatch) {
                     // For numbered lists, increment to the next number
-                    const currentNumber = parseInt(numberMatch[1]);
-                    const indent = numberMatch[1].match(/^(\s*)/)[0];
+                    const currentNumber = parseInt(bullet);
                     nextBullet = `${indent}${currentNumber + 1}. `;
+                } else {
+                    nextBullet = `${indent}${bullet}`;
                 }
                 const newText = before + '\n' + nextBullet + after;
                 editor.value = newText;
