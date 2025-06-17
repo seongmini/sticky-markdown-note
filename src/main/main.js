@@ -42,6 +42,7 @@ function createMainWindow() {
     width: 400,
     height: 600,
     frame: false,
+    show: false, // Start hidden
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -49,6 +50,15 @@ function createMainWindow() {
   });
 
   mainWindow.loadFile('src/renderer/list/list.html');
+
+  // Set initial theme and show window when ready
+  mainWindow.webContents.once('did-finish-load', () => {
+    if (store) {
+      mainWindow.webContents.send('theme-changed', store.get('theme'));
+    }
+    mainWindow.show();
+    mainWindow.focus();
+  });
 
   // Settings button click event handler
   ipcMain.on('open-settings-window', () => {
@@ -476,6 +486,7 @@ function createSettingsWindow() {
     width: 600,
     height: 400,
     frame: false,
+    show: false, // Start hidden
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -483,6 +494,15 @@ function createSettingsWindow() {
   });
 
   settingsWindow.loadFile('src/renderer/settings/settings.html');
+
+  // Set initial theme and show window when ready
+  settingsWindow.webContents.once('did-finish-load', () => {
+    if (store) {
+      settingsWindow.webContents.send('theme-changed', store.get('theme'));
+    }
+    settingsWindow.show();
+    settingsWindow.focus();
+  });
 
   settingsWindow.on('closed', () => {
     settingsWindow = null;
