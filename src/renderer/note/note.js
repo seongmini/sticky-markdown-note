@@ -296,6 +296,21 @@ function surround(before, after = before) {
   preview.innerHTML = renderMathInMarkdown(editor.value);
 }
 
+// Loading indicator control functions
+function showLoadingIndicator() {
+    const loadingIndicator = document.getElementById('loading-indicator');
+    if (loadingIndicator) {
+        loadingIndicator.style.display = 'flex';
+    }
+}
+
+function hideLoadingIndicator() {
+    const loadingIndicator = document.getElementById('loading-indicator');
+    if (loadingIndicator) {
+        loadingIndicator.style.display = 'none';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   // Set initial theme
   ipcRenderer.invoke('get-current-theme').then(theme => {
@@ -379,19 +394,41 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (isNew) {
       viewMode = 'both';
     }
-    if (currentPath && fs.existsSync(currentPath)) {
-      let content = fs.readFileSync(currentPath, 'utf-8');
-      // Convert existing app-asset:/// links to file:// links
-      content = await convertAppAssetLinks(content);
-      editor.value = content;
-      preview.innerHTML = renderMathInMarkdown(content);
-      
-      // If content was converted, save to file
-      if (content !== fs.readFileSync(currentPath, 'utf-8')) {
-        fs.writeFile(currentPath, content, () => {});
+
+    showLoadingIndicator(); // Show loading indicator before reading file
+
+    try {
+      if (currentPath && fs.existsSync(currentPath)) {
+        const content = await new Promise((resolve, reject) => {
+          fs.readFile(currentPath, 'utf-8', (err, data) => {
+            if (err) reject(err);
+            else resolve(data);
+          });
+        });
+        
+        // Convert existing app-asset:/// links to file:// links
+        const convertedContent = await convertAppAssetLinks(content);
+        editor.value = convertedContent;
+        preview.innerHTML = renderMathInMarkdown(convertedContent);
+        
+        // If content was converted, save to file
+        if (convertedContent !== content) {
+          await new Promise((resolve, reject) => {
+            fs.writeFile(currentPath, convertedContent, (err) => {
+              if (err) reject(err);
+              else resolve();
+            });
+          });
+        }
       }
+    } catch (error) {
+      console.error('Error loading note:', error);
+      editor.value = '';
+      preview.innerHTML = '';
+    } finally {
+      hideLoadingIndicator(); // Hide loading indicator after everything is done
+      updateView();
     }
-    updateView();
   });
 
   ipcRenderer.on('window-focused', () => {
