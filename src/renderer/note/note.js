@@ -785,8 +785,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // If current line has a checkbox, add checkbox to next line
                 if (checkboxMatch) {
                     nextBullet += '[ ] ';
-                } else {
-                    nextBullet += ' ';
                 }
 
                 const newText = before + '\n' + nextBullet + after;
