@@ -582,29 +582,63 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.preventDefault();
         const start = editor.selectionStart;
         const end = editor.selectionEnd;
-        const lines = editor.value.slice(start, end).split('\n');
+        const text = editor.value;
+        
+        // Get the current line
+        const before = text.slice(0, start);
+        const after = text.slice(end);
+        const currentLineStart = before.lastIndexOf('\n') + 1;
+        const currentLineEnd = after.indexOf('\n') === -1 ? text.length : end + after.indexOf('\n');
+        const currentLine = text.slice(currentLineStart, currentLineEnd);
+        
+        // Check if we're in a list item
+        const isListItem = /^(\s*)([-*+]\s|\d+\.\s)/.test(currentLine);
+        
         let newText;
         if (e.shiftKey) {
-            newText = lines
-                .map(line =>
-                    line.startsWith('    ') ? line.slice(4) : line.startsWith('\t') ? line.slice(1) : line
-                )
-                .join('\n');
+            // Unindent
+            if (isListItem) {
+                const match = currentLine.match(/^(\s*)([-*+]\s|\d+\.\s)(.*)/);
+                if (match) {
+                    const [, indent, bullet, content] = match;
+                    const newIndent = indent.length >= 4 ? indent.slice(4) : '';
+                    newText = text.slice(0, currentLineStart) + newIndent + bullet + content + text.slice(currentLineEnd);
+                    editor.value = newText;
+                    editor.selectionStart = editor.selectionEnd = start - 4;
+                }
+            } else {
+                const lines = text.slice(start, end).split('\n');
+                newText = lines
+                    .map(line => {
+                        if (line.startsWith('    ')) {
+                            return line.slice(4);
+                        } else if (line.startsWith('\t')) {
+                            return line.slice(1);
+                        }
+                        return line;
+                    })
+                    .join('\n');
+                editor.value = before + newText + after;
+                editor.selectionStart = start;
+                editor.selectionEnd = start + newText.length;
+            }
         } else {
-            newText = lines.map(line => '    ' + line).join('\n');
-        }
-        const before = editor.value.slice(0, start);
-        const after = editor.value.slice(end);
-        editor.value = before + newText + after;
-        
-        // Adjust cursor position
-        if (start === end) {
-            // For single cursor
-            editor.selectionStart = editor.selectionEnd = start + 4;
-        } else {
-            // For multi-line selection
-            editor.selectionStart = start;
-            editor.selectionEnd = start + newText.length;
+            // Indent
+            if (isListItem) {
+                const match = currentLine.match(/^(\s*)([-*+]\s|\d+\.\s)(.*)/);
+                if (match) {
+                    const [, indent, bullet, content] = match;
+                    newText = text.slice(0, currentLineStart) + indent + '    ' + bullet + content + text.slice(currentLineEnd);
+                    editor.value = newText;
+                    editor.selectionStart = editor.selectionEnd = start + 4;
+                }
+            } else {
+                const lines = text.slice(start, end).split('\n');
+                newText = lines.map(line => '    ' + line).join('\n');
+                editor.value = before + newText + after;
+                editor.selectionStart = start;
+                editor.selectionEnd = start + newText.length;
+            }
         }
         
         editor.dispatchEvent(new Event('input'));
