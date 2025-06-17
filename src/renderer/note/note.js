@@ -351,6 +351,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   const onlyToggleBtn = document.getElementById('only-toggle');
   const newNoteBtn = document.getElementById('new-note');
 
+  // Set initial titlebar state
+  if (titlebar) {
+    titlebar.style.display = 'flex';
+  }
+
   let viewMode = 'only';
   let onlyTarget = 'preview';
   let saveTimeout = null;
