@@ -431,12 +431,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  // Window focus/blur event handlers
   ipcRenderer.on('window-focused', () => {
-    titlebar.style.display = 'flex';
+    const titlebar = document.getElementById('titlebar');
+    if (titlebar) {
+      titlebar.style.display = 'flex';
+    }
   });
 
   ipcRenderer.on('window-blurred', () => {
-    titlebar.style.display = 'none';
+    const titlebar = document.getElementById('titlebar');
+    if (titlebar) {
+      titlebar.style.display = 'none';
+    }
   });
 
   editor.addEventListener('input', () => {
